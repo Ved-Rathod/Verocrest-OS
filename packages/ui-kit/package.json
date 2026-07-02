@@ -2,15 +2,26 @@
   "name": "@verocrest/ui-kit",
   "version": "0.1.0",
   "private": true,
-  "description": "Scaffold only — implementation lands in Sprint 3 per BUILD_ROADMAP.",
+  "description": "Design-system components + tokens per docs/07 and docs/08. Seeded in Sprint 1.2; full set lands Sprint 3.",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.0.1"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
   "devDependencies": {
+    "@types/react": "^19.0.8",
+    "react": "^19.0.0",
     "typescript": "catalog:"
   }
 }
