@@ -1,0 +1,20 @@
+# Workspace layout per 03_System_Architecture.md §5.
+# apps/*     — deployable applications (apps/web lands in Sprint 1.2)
+# packages/* — domain modules, platform substrates, ui-kit, config
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Single source of truth for shared dependency versions (pnpm catalogs).
+# Packages reference these as "catalog:" so version bumps happen in one place.
+catalog:
+  zod: ^3.24.1
+  typescript: ^5.7.3
+  vitest: ^3.0.5
+  '@types/node': ^22.13.1
+
+# pnpm 10 blocks dependency lifecycle scripts by default (supply-chain hardening,
+# aligns with NFR-SEC-013). Only explicitly approved packages may run build scripts.
+onlyBuiltDependencies:
+  - esbuild
+  - sharp

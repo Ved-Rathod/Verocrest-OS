@@ -1,0 +1,23 @@
+{
+  "name": "@verocrest/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Verocrest OS — Next.js 15 application. Placeholder in Sprint 1.1; shell lands in Sprint 3.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "typescript": "catalog:"
+  }
+}

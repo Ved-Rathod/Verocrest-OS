@@ -1,0 +1,11 @@
+# Build artifacts + deps
+node_modules/
+.turbo/
+.next/
+dist/
+coverage/
+pnpm-lock.yaml
+
+# Frozen blueprint documents — tooling must never rewrite them
+docs/
+BUILD_ROADMAP.md

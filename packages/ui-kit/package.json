@@ -1,0 +1,16 @@
+{
+  "name": "@verocrest/ui-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Scaffold only — implementation lands in Sprint 3 per BUILD_ROADMAP.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

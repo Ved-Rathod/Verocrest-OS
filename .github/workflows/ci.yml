@@ -1,0 +1,41 @@
+# CI — Sprint 1.1 placeholder.
+# Sprint 1.6 expands this into the full 12-stage pipeline defined in
+# docs/12_Infrastructure_Deployment.md §4.2 (adds: ESLint governance, integration
+# tests vs local Supabase, Tenancy Fuzzer, RLS lint, prompt regression,
+# event contract tests, secret scan, dependency audit, bundle-size budget).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Build
+        run: pnpm build

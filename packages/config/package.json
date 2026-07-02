@@ -1,0 +1,22 @@
+{
+  "name": "@verocrest/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zod-validated environment schema and shared configuration. Boot fails on invalid env.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Turborepo
+.turbo/
+
+# Environment — secrets never touch git (12_Infrastructure_Deployment.md §5.2)
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,18 @@
+# Nightly — Sprint 1.1 placeholder (manual trigger only).
+# Activated with a real schedule when staging exists (Sprint 1.7+):
+#   - real-provider integration suite (docs/11_External_Integrations.md §16.4)
+#   - AI golden-set evals (docs/09_AI_Architecture.md §3.10)
+#   - k6 load tests from Sprint 12+ (docs/12_Infrastructure_Deployment.md §6.1)
+name: Nightly
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '0 3 * * *'   # enabled in Sprint 1.7 when staging is live
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Nightly suite lands in Sprint 1.7+ per BUILD_ROADMAP."

@@ -1,0 +1,24 @@
+{
+  "name": "verocrest-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Verocrest OS — AI-native client acquisition engine. Monorepo root.",
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20.18.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "turbo": "^2.4.0",
+    "typescript": "catalog:"
+  }
+}
