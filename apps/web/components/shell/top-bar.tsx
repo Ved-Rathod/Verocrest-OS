@@ -1,13 +1,34 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { MenuIcon } from 'lucide-react';
+import type { ShellUser } from './sidebar';
 import { ThemeToggle } from './theme-toggle';
 
 /**
- * Top bar per docs/07 §3.3 — 48px sticky; breadcrumb/title left, action cluster right.
- * Contextual actions and the notification bell arrive with their modules.
+ * Top bar per docs/07 §3.3 — 48px sticky; title left, action cluster right.
+ * Titles are route-derived; the full breadcrumb model arrives with entity
+ * detail pages (docs/07 §3.4).
  */
-export function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void }) {
+const TITLES: Record<string, string> = {
+  '/': 'Dashboard',
+  '/settings/workspace': 'Workspace Settings',
+  '/companies': 'Companies',
+  '/companies/new': 'New Company',
+};
+
+function titleFor(pathname: string): string {
+  if (TITLES[pathname]) return TITLES[pathname];
+  if (pathname.startsWith('/companies/') && pathname.endsWith('/edit')) return 'Edit Company';
+  if (pathname.startsWith('/companies')) return 'Companies';
+  return 'Verocrest OS';
+}
+
+export function TopBar({ user, onMenuClick }: { user: ShellUser; onMenuClick: () => void }) {
+  const pathname = usePathname();
+  const title = titleFor(pathname);
+  const initial = (user.displayName ?? user.email ?? '?').charAt(0).toUpperCase();
+
   return (
     <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-edge-subtle bg-canvas/95 px-4 backdrop-blur">
       <button
@@ -23,10 +44,10 @@ export function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () 
       <div className="ml-auto flex items-center gap-1.5">
         <ThemeToggle />
         <span
-          aria-hidden="true"
+          title={user.email ?? undefined}
           className="flex size-7 items-center justify-center rounded-full bg-surface-3 text-xs font-medium text-fg"
         >
-          F
+          {initial}
         </span>
       </div>
     </header>

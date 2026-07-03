@@ -2,9 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { SearchIcon, XIcon } from 'lucide-react';
-import { Badge, cn } from '@verocrest/ui-kit';
+import { LogOutIcon, SearchIcon, XIcon } from 'lucide-react';
+import { cn } from '@verocrest/ui-kit';
+import { signOut } from '@verocrest/domain-auth/actions';
 import { primaryNav, secondaryNav, type NavItem } from './nav-items';
+import { WorkspaceSwitcher } from './workspace-switcher';
+
+export type ShellUser = {
+  email: string | null;
+  displayName: string | null;
+};
 
 /**
  * Sidebar per docs/07 §3.2 — workspace switcher, search affordance, fixed-order
@@ -12,9 +19,11 @@ import { primaryNav, secondaryNav, type NavItem } from './nav-items';
  * tablet / overlay drawer on mobile (docs/07 §14.1).
  */
 export function Sidebar({
+  user,
   mobileOpen,
   onMobileClose,
 }: {
+  user: ShellUser;
   mobileOpen: boolean;
   onMobileClose: () => void;
 }) {
@@ -38,23 +47,12 @@ export function Sidebar({
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        {/* Workspace switcher (07 §3.5) — static until workspaces land in Sprint 2 */}
-        <div className="flex h-12 items-center gap-2.5 border-b border-edge-subtle px-3">
-          <span
-            aria-hidden="true"
-            className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary font-semibold text-fg-on-primary"
-          >
-            V
-          </span>
-          <span className="truncate font-semibold text-fg-strong md:hidden lg:inline">
-            Verocrest
-          </span>
-          <Badge variant="neutral" className="md:hidden lg:inline-flex">
-            owner
-          </Badge>
+        {/* Workspace switcher (07 §3.5) — membership-driven since Sprint 1.4 */}
+        <div className="relative">
+          <WorkspaceSwitcher />
           <button
             aria-label="Close navigation"
-            className="ml-auto rounded-sm p-1 text-fg-muted hover:bg-surface-2 md:hidden"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm bg-surface p-1 text-fg-muted hover:bg-surface-2 md:hidden"
             onClick={onMobileClose}
           >
             <XIcon className="size-4" />
@@ -97,19 +95,33 @@ export function Sidebar({
           </ul>
         </nav>
 
-        {/* User menu placeholder — real menu lands with auth (Sprint 2) */}
+        {/* User section — sign-out per FR-IDT-011 (server-side invalidation) */}
         <div className="border-t border-edge-subtle p-3">
           <div className="flex items-center gap-2.5">
             <span
               aria-hidden="true"
               className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-3 text-xs font-medium text-fg"
             >
-              F
+              {(user.displayName ?? user.email ?? '?').charAt(0).toUpperCase()}
             </span>
-            <div className="min-w-0 md:hidden lg:block">
-              <p className="truncate text-sm font-medium text-fg">Founder</p>
-              <p className="truncate text-xs text-fg-subtle">Sign-in lands in Sprint 2</p>
+            <div className="min-w-0 flex-1 md:hidden lg:block">
+              <p className="truncate text-sm font-medium text-fg">
+                {user.displayName ?? user.email ?? 'Signed in'}
+              </p>
+              {user.displayName && user.email ? (
+                <p className="truncate text-xs text-fg-subtle">{user.email}</p>
+              ) : null}
             </div>
+            <form action={signOut}>
+              <button
+                type="submit"
+                title="Sign out"
+                aria-label="Sign out"
+                className="rounded-sm p-1.5 text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+              >
+                <LogOutIcon className="size-4" strokeWidth={1.75} />
+              </button>
+            </form>
           </div>
         </div>
       </aside>
@@ -139,7 +151,12 @@ function NavEntry({ item, onNavigate }: { item: NavItem; onNavigate: () => void 
     );
   }
 
-  const active = pathname === item.href;
+  // Root matches exactly; other sections stay active on their sub-routes
+  // (e.g. Companies highlights on /companies/new and /companies/:id/edit).
+  const active =
+    item.href === '/'
+      ? pathname === '/'
+      : pathname === item.href || pathname.startsWith(`${item.href}/`);
   return (
     <Link
       href={item.href}

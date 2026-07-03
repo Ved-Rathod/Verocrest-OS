@@ -10,6 +10,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@verocrest/config": "workspace:*",
+    "@verocrest/domain-auth": "workspace:*",
+    "@verocrest/domain-contacts": "workspace:*",
+    "@verocrest/platform-integrations": "workspace:*",
+    "@verocrest/platform-tenancy": "workspace:*",
     "@verocrest/ui-kit": "workspace:*",
     "lucide-react": "^0.475.0",
     "next": "^15.1.6",

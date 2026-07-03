@@ -2,15 +2,30 @@
   "name": "@verocrest/platform-integrations",
   "version": "0.1.0",
   "private": true,
-  "description": "Scaffold only — implementation lands in Sprint 5+ per BUILD_ROADMAP.",
+  "description": "Provider adapters per docs/11. Vendor SDKs may be imported ONLY inside this package. Supabase adapter landed Sprint 1.3; remaining providers land Sprint 5+.",
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./supabase/server": "./src/supabase/server.ts",
+    "./supabase/browser": "./src/supabase/browser.ts",
+    "./supabase/middleware": "./src/supabase/middleware.ts",
+    "./supabase/types": "./src/supabase/types.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.48.1",
+    "@verocrest/config": "workspace:*"
+  },
+  "peerDependencies": {
+    "next": "^15.0.0"
+  },
   "devDependencies": {
+    "@types/node": "catalog:",
+    "next": "^15.1.6",
     "typescript": "catalog:"
   }
 }

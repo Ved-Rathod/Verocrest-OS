@@ -31,14 +31,14 @@ export const primaryNav: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboardIcon, href: '/' },
   { label: 'Queue', icon: LayoutListIcon, landsIn: 'Sprint 7' },
   { label: 'Contacts', icon: UsersIcon, landsIn: 'Sprint 4' },
-  { label: 'Companies', icon: Building2Icon, landsIn: 'Sprint 4' },
+  { label: 'Companies', icon: Building2Icon, href: '/companies' },
   { label: 'Pipeline', icon: SquareKanbanIcon, landsIn: 'Sprint 10' },
   { label: 'Audits', icon: SearchCheckIcon, landsIn: 'Sprint 8' },
   { label: 'Outreach', icon: SendIcon, landsIn: 'Sprint 9' },
   { label: 'Meetings', icon: CalendarIcon, landsIn: 'Sprint 10' },
   { label: 'KB', icon: BookOpenIcon, landsIn: 'Sprint 6' },
   { label: 'Offers', icon: PackageIcon, landsIn: 'Sprint 6' },
-  { label: 'Settings', icon: SettingsIcon, landsIn: 'Sprint 3' },
+  { label: 'Settings', icon: SettingsIcon, href: '/settings/workspace' },
 ];
 
 export const secondaryNav: NavItem[] = [

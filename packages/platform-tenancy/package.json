@@ -2,15 +2,27 @@
   "name": "@verocrest/platform-tenancy",
   "version": "0.1.0",
   "private": true,
-  "description": "Scaffold only — implementation lands in Sprint 2 per BUILD_ROADMAP.",
+  "description": "Workspace guard + request-scoped tenancy context + shared action-result envelope (docs/03 §4, docs/10 §10). Landed Sprint 2.1.",
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@verocrest/platform-integrations": "workspace:*"
+  },
+  "peerDependencies": {
+    "next": "^15.0.0"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "@types/node": "catalog:",
+    "next": "^15.1.6",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
