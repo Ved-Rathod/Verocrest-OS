@@ -79,6 +79,33 @@ export async function listCompanies(
   return { items, nextCursor };
 }
 
+/** Lightweight company options for the contact company-picker (docs/06 §3.9). */
+export type CompanyOption = { id: string; name: string; domain: string | null };
+
+export async function searchCompanies(
+  ctx: WorkspaceContext,
+  query: string,
+  limit = 10,
+): Promise<CompanyOption[]> {
+  const supabase = await createSupabaseServerClient();
+  let q = supabase
+    .from('companies')
+    .select('id, name, domain')
+    .eq('workspace_id', ctx.workspaceId)
+    .is('deleted_at', null);
+
+  const term = sanitizeSearch(query);
+  if (term) q = q.or(`name.ilike.%${term}%,domain.ilike.%${term}%`);
+
+  const { data, error } = await q.order('name', { ascending: true }).limit(Math.min(limit, 25));
+  if (error) throw error;
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    domain: (r.domain as string | null) ?? null,
+  }));
+}
+
 export async function getCompany(ctx: WorkspaceContext, id: string): Promise<Company | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase

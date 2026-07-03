@@ -5,3 +5,10 @@ export {
   deleteCompanyAction,
   loadCompaniesPageAction,
 } from './company/actions';
+export {
+  createContactAction,
+  updateContactAction,
+  deleteContactAction,
+  loadContactsPageAction,
+  searchCompaniesForPickerAction,
+} from './contact/actions';

@@ -15,12 +15,16 @@ const TITLES: Record<string, string> = {
   '/settings/workspace': 'Workspace Settings',
   '/companies': 'Companies',
   '/companies/new': 'New Company',
+  '/contacts': 'Contacts',
+  '/contacts/new': 'New Contact',
 };
 
 function titleFor(pathname: string): string {
   if (TITLES[pathname]) return TITLES[pathname];
   if (pathname.startsWith('/companies/') && pathname.endsWith('/edit')) return 'Edit Company';
   if (pathname.startsWith('/companies')) return 'Companies';
+  if (pathname.startsWith('/contacts/') && pathname.endsWith('/edit')) return 'Edit Contact';
+  if (pathname.startsWith('/contacts')) return 'Contacts';
   return 'Verocrest OS';
 }
 

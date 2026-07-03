@@ -2,3 +2,4 @@
 // Server Actions live at '@verocrest/domain-contacts/actions'.
 export { getCompaniesPage, getCompanyById, CompaniesUnavailableError } from './company/queries';
 export type { CompaniesUnavailableReason } from './company/queries';
+export { getContactsPage, getContactDetailPage } from './contact/queries';

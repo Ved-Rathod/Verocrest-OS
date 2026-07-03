@@ -30,7 +30,7 @@ export type NavItem = {
 export const primaryNav: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboardIcon, href: '/' },
   { label: 'Queue', icon: LayoutListIcon, landsIn: 'Sprint 7' },
-  { label: 'Contacts', icon: UsersIcon, landsIn: 'Sprint 4' },
+  { label: 'Contacts', icon: UsersIcon, href: '/contacts' },
   { label: 'Companies', icon: Building2Icon, href: '/companies' },
   { label: 'Pipeline', icon: SquareKanbanIcon, landsIn: 'Sprint 10' },
   { label: 'Audits', icon: SearchCheckIcon, landsIn: 'Sprint 8' },
