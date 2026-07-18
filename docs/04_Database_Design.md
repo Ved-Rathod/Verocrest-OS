@@ -3,10 +3,11 @@
 **Document:** Database Design (schema, indexes, RLS, roles, lifecycle)
 **Product:** Verocrest OS
 **Version:** 0.1 (Blueprint — Core Engine First, rev 2)
-**Status:** Approved with revisions
+**Status:** Approved & frozen — amended per register
+**Amendments:** 001 (2026-07-03, leads columns + contact-required affirmation) — see `BLUEPRINT_AMENDMENTS.md`
 **Owner:** Founder / CTO / Database Architect
 **Depends on:** `01_Vision.md`, `02_Product_Requirements.md`, `03_System_Architecture.md`
-**Last updated:** 2026-07-01
+**Last updated:** 2026-07-03 (Amendment 001)
 
 ---
 
@@ -463,6 +464,10 @@ CREATE TYPE lead_status_enum AS ENUM (
   'disqualified', 'unsubscribed'
 );
 
+-- AMENDED (Amendment 001, 2026-07-03): manual lead priority, distinct from the
+-- AI opportunity score (§5.3). See BLUEPRINT_AMENDMENTS.md.
+CREATE TYPE lead_priority_enum AS ENUM ('low', 'medium', 'high');
+
 CREATE TABLE leads (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id      uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
@@ -471,6 +476,15 @@ CREATE TABLE leads (
   status            lead_status_enum NOT NULL DEFAULT 'new',
   owner_user_id     uuid REFERENCES auth.users(id),
   source            text,
+  -- AMENDED (Amendment 001): manual prioritization + pipeline-forecast inputs at
+  -- the lead stage. estimated_value/currency/expected_close_date SEED the
+  -- auto-created deal (05 §11.1); the deal is authoritative from that point.
+  priority          lead_priority_enum,
+  estimated_value   numeric(18,4),
+  currency          char(3),
+  expected_close_date date,
+  notes             text,
+  tags              text[] NOT NULL DEFAULT '{}',
   ingestion_batch_id uuid,
   first_ingested_at timestamptz NOT NULL DEFAULT now(),
   qualified_at     timestamptz,
@@ -479,7 +493,8 @@ CREATE TABLE leads (
   custom_fields    jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now(),
-  deleted_at        timestamptz
+  deleted_at        timestamptz,
+  CONSTRAINT ck_leads_currency CHECK (currency IS NULL OR currency ~ '^[A-Z]{3}$')  -- Amendment 001
 );
 
 CREATE UNIQUE INDEX uq_leads_ws_contact_active
@@ -488,9 +503,15 @@ CREATE UNIQUE INDEX uq_leads_ws_contact_active
 CREATE INDEX idx_leads_ws_status ON leads (workspace_id, status) WHERE deleted_at IS NULL;
 CREATE INDEX idx_leads_ws_owner ON leads (workspace_id, owner_user_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_leads_ws_company ON leads (workspace_id, company_id) WHERE company_id IS NOT NULL;
+
+-- AMENDED (Amendment 001): filter hot paths for the new columns
+CREATE INDEX idx_leads_ws_priority ON leads (workspace_id, priority) WHERE deleted_at IS NULL;
+CREATE INDEX idx_leads_ws_tags ON leads USING gin (workspace_id, tags);
 ```
 
 `company_id` is denormalized from `contacts` for query performance (Gold Leads by industry, by company size). Kept consistent by an event subscriber on `contact.updated`.
+
+**Amendment 001 notes (see `BLUEPRINT_AMENDMENTS.md`):** `priority` is a *manual* signal, distinct from and coexisting with the AI opportunity score (§5.3). `estimated_value` requires `currency` at the application layer when set (money convention §1.2). Lead `notes`/`tags` are lead-scoped and do not replace contact-level notes/tags. The contact-required design of this table was formally contested and **affirmed**: every lead belongs to a contact; the lead-creation flow must allow selecting an existing contact or creating one inline (contact first, then lead), with the lead's company auto-derived from the contact.
 
 ### 5.2 `scoring_rubrics`
 
@@ -1942,6 +1963,7 @@ Applies to: `relationship_profiles`, `lead_scores`, `outreach_queue_items`, `mem
 - `actor_type_enum` — user, agent, system, integration
 - `company_size_enum` (**rev 2**) — solo, micro, small, medium, large, enterprise
 - `lead_status_enum` — see §5.1
+- `lead_priority_enum` (**Amendment 001**) — low, medium, high
 - `audit_status_enum` — pending, running, completed, failed
 - `finding_category_enum` — cta, booking, mobile, trust, conversion, performance, seo, forms, brand, accessibility
 - `finding_severity_enum` — low, medium, high, critical
@@ -2186,6 +2208,7 @@ All uploads go through signed-URL flow gated on workspace membership.
 | 2026-07-01 (rev 2) | **`memory_scope_enum` extended with company, knowledge_doc, offer, icp** | Explicit scoping lets retrieval filter precisely |
 | 2026-07-01 (rev 2) | **`recommended_offer_id` on `outreach_queue_items`** | Offer suggestion is a first-class NBA facet, not a footnote |
 | 2026-07-01 (rev 2) | **Soft cap 5 active ICPs per workspace (UI-warning only, no DB constraint)** | Prevents ICP-explosion; leaves room for structural exceptions |
+| 2026-07-03 (**Amendment 001**) | **Leads gain `priority` (new `lead_priority_enum`), `estimated_value` + `currency`, `expected_close_date`, `notes`, `tags` as proper columns; `contact_id NOT NULL` contested and affirmed; lead-creation flow must support inline contact creation with company derived from the contact** | Founder-approved amendment resolving Sprint 2.3 requirements vs frozen schema. Value/close-date seed the auto-created deal (05 §11.1). Full record in `BLUEPRINT_AMENDMENTS.md`. |
 
 ---
 

@@ -15,7 +15,7 @@ export const CONTACT_SELECT =
   'id, first_name, last_name, primary_email, company_id, company_name, role_title, seniority, is_decision_maker, is_client, tags, created_at, updated_at';
 
 export const CONTACT_DETAIL_SELECT =
-  'id, first_name, last_name, primary_email, phones, company_id, company_name, role_title, seniority, is_decision_maker, website_url, linkedin_url, notes, is_client, tags, created_at, updated_at, company:companies(id, name, domain, industry)';
+  'id, first_name, last_name, primary_email, phones, company_id, company_name, role_title, seniority, is_decision_maker, website_url, linkedin_url, notes, is_client, tags, custom_fields, created_at, updated_at, company:companies(id, name, domain, industry)';
 
 export const contactRowSchema = z.object({
   id: z.string().uuid(),
@@ -47,6 +47,7 @@ export const contactDetailRowSchema = contactRowSchema.extend({
   website_url: z.string().nullable(),
   linkedin_url: z.string().nullable(),
   notes: z.string().nullable(),
+  custom_fields: z.record(z.string(), z.unknown()).catch({}),
   // supabase embeds a to-one relation as an object (or null); tolerate an array too.
   company: z.union([linkedCompanySchema, z.array(linkedCompanySchema)]).optional(),
 });
@@ -79,6 +80,7 @@ export type ContactDetail = Contact & {
   websiteUrl: string | null;
   linkedinUrl: string | null;
   notes: string | null;
+  customFields: Record<string, unknown>;
   company: LinkedCompany | null;
 };
 
@@ -114,6 +116,7 @@ export function toContactDetail(row: z.infer<typeof contactDetailRowSchema>): Co
     websiteUrl: row.website_url,
     linkedinUrl: row.linkedin_url,
     notes: row.notes,
+    customFields: row.custom_fields,
     company: companyRaw,
   };
 }

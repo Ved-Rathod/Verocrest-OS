@@ -501,8 +501,9 @@ Complexity scale: **S** (≤ 2 days) / **M** (3–5 days) / **L** (1–1.5 weeks
 8. Alert wiring complete per `12` §6.2 consolidated table; test-fire each Page alert — S
 9. AI eval baseline: golden-set evals recorded for all 17 capabilities (regression floor for future prompt changes) — M
 10. Prompt-library global seed finalized + `prompt_library_seed.sql` versioned — S
+11. **Lint infrastructure (deferred from Sprint 2.3 audit, 2026-07-03):** `pnpm lint` is currently a monorepo-wide no-op — no ESLint config, no per-package `lint` scripts, no `next lint`, and `tsconfig.base.json` omits `noUnusedLocals`/`noUnusedParameters` (so there is no automated dead-code detection). Stand up ESLint + per-package `lint` scripts, enable the TS dead-code flags, and add the cross-domain import-boundary rule the architecture intends (`03` §5). Then fix whatever it surfaces repo-wide. (Sprint 2.3 Leads code was manually verified clean under these flags — 0 violations — so this is scaffold debt, not feature debt.) — M
 
-**Blueprint refs:** `02` NFR-*, `05` §14, `08` §14, `11` §16, `12` (all)
+**Blueprint refs:** `02` NFR-*, `05` §14, `08` §14, `11` §16, `12` (all), `03` §5
 **Dependencies:** S12 (feature-complete system to harden)
 **Definition of Done:**
 - [ ] k6 run meets every NFR-PERF number; results archived
@@ -511,6 +512,7 @@ Complexity scale: **S** (≤ 2 days) / **M** (3–5 days) / **L** (1–1.5 weeks
 - [ ] Every Page alert fired once and received on founder's phone
 - [ ] Tenancy Fuzzer, RLS lint, prompt regression, event contract, canary — all green in one final full-pipeline run
 - [ ] All runbooks merged to `docs/runbooks/`
+- [ ] `pnpm lint` runs real ESLint across all packages (incl. cross-domain import-boundary rule) and is green; TS dead-code flags enabled — deferred lint-infrastructure item closed
 
 **Testing checklist:** this sprint IS the testing checklist — exit criteria above
 **Risks:** Hardening reveals perf debt requiring rework (buffer: this sprint may stretch; do not compress it to hit a date — `01` guardrails over calendar)
@@ -635,6 +637,17 @@ Per `02` NFR-MNT-002/003 and `12` §4.2 — enforced from Sprint 1, not retrofit
 3. Each feature is delivered as: implementation → tests → verification against DoD → your review.
 4. At each sprint boundary: DoD walkthrough, next-sprint confirmation, no skipping ahead.
 5. Any blueprint contradiction discovered stops work and comes to you as a decision item.
+
+---
+
+## 10. Roadmap Execution Notes
+
+Execution-time deviations from the sprint plan, recorded for traceability. These are
+scheduling/sequencing decisions — NOT blueprint changes (which live in `BLUEPRINT_AMENDMENTS.md`).
+
+| # | Date | Note |
+|---|---|---|
+| RN-001 | 2026-07-16 | **SPRINT 5 DoD bullet 3 (OpenAI provider-kill/failover test) deferred to SPRINT 7.** SPRINT 5 was delivered as sub-sprints 3.1–3.4 (Event Bus, AI Router, Memory+Embeddings). The OpenAI *chat* adapter (SPRINT 5 item 4) was deferred (Sprint 3.3 decision #4) because no live capability is OpenAI-primary until `score-lead`/`recommend-offer` in SPRINT 7. Building it in an isolated sub-sprint would add unused infrastructure. It — and the provider-kill acceptance test — are implemented in SPRINT 7 alongside their first genuine consumer (which also needs OpenAI's native structured-output mode, `09` §2.7). Anthropic + Mock chat providers are unchanged and remain the live path. Founder-approved 2026-07-16. |
 
 ---
 

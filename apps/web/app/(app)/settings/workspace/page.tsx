@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { resolveActiveWorkspace } from '@verocrest/domain-auth/server';
 import { Card, CardBody, CardHeader, CardTitle } from '@verocrest/ui-kit';
 import { WorkspaceSettingsForm } from '@/components/settings/workspace-settings-form';
+import { SettingsTabs } from '@/components/settings/settings-tabs';
 
 export const metadata: Metadata = { title: 'Workspace Settings' };
 
@@ -14,6 +15,7 @@ export default async function WorkspaceSettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl p-4 lg:p-6">
+      <SettingsTabs />
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Workspace</CardTitle>

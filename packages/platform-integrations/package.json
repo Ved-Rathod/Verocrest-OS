@@ -7,16 +7,21 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
+    "./llm": "./src/llm/index.ts",
     "./supabase/server": "./src/supabase/server.ts",
+    "./supabase/service": "./src/supabase/service.ts",
     "./supabase/browser": "./src/supabase/browser.ts",
     "./supabase/middleware": "./src/supabase/middleware.ts",
     "./supabase/types": "./src/supabase/types.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "catalog:",
     "@supabase/ssr": "^0.5.2",
+    "openai": "catalog:",
     "@supabase/supabase-js": "^2.48.1",
     "@verocrest/config": "workspace:*"
   },
@@ -26,6 +31,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "next": "^15.1.6",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

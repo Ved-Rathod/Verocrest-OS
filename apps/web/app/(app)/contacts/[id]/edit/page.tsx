@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { CompaniesUnavailableError, getContactDetailPage } from '@verocrest/domain-contacts/server';
+import { getContactDetailPage, getCustomFieldDefinitions } from '@verocrest/domain-contacts/server';
 import { displayName } from '@verocrest/domain-contacts';
 import { ContactForm } from '@/components/contacts/contact-form';
 
@@ -10,14 +10,10 @@ export const dynamic = 'force-dynamic';
 export default async function EditContactPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  let contact;
-  try {
-    contact = await getContactDetailPage(id);
-  } catch (error) {
-    if (error instanceof CompaniesUnavailableError) throw error;
-    throw error;
-  }
+  // getContactDetailPage normalizes failures (→ error.tsx); null = not-found.
+  const contact = await getContactDetailPage(id);
   if (!contact) notFound();
+  const definitions = await getCustomFieldDefinitions('contact');
 
   return (
     <div className="mx-auto w-full max-w-2xl p-4 lg:p-6">
@@ -26,7 +22,12 @@ export default async function EditContactPage({ params }: { params: Promise<{ id
         <p className="text-sm text-fg-muted">{displayName(contact)}</p>
       </div>
       <div className="rounded-lg border border-edge-subtle bg-surface p-5">
-        <ContactForm mode="edit" contactId={contact.id} initial={contact} />
+        <ContactForm
+          mode="edit"
+          contactId={contact.id}
+          initial={contact}
+          definitions={definitions}
+        />
       </div>
     </div>
   );

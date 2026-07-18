@@ -1,7 +1,7 @@
 import { requireWorkspaceContext, WorkspaceContextError } from '@verocrest/platform-tenancy/server';
-import { getCompany, listCompanies } from './service';
+import { getCompany, getCompanyDetail, listCompanies, listCompanyContacts } from './service';
 import { isDbError } from './service';
-import type { Company, CompanyPage } from './types';
+import type { Company, CompanyContactRef, CompanyDetail, CompanyPage } from './types';
 import { companyListParamsSchema, type CompanyListParams } from './validation';
 
 /**
@@ -46,6 +46,24 @@ export async function getCompanyById(id: string): Promise<Company | null> {
   try {
     const ctx = await requireWorkspaceContext();
     return await getCompany(ctx, id);
+  } catch (error) {
+    throw normalize(error);
+  }
+}
+
+export async function getCompanyDetailPage(id: string): Promise<CompanyDetail | null> {
+  try {
+    const ctx = await requireWorkspaceContext();
+    return await getCompanyDetail(ctx, id);
+  } catch (error) {
+    throw normalize(error);
+  }
+}
+
+export async function getCompanyContactsPage(id: string): Promise<CompanyContactRef[]> {
+  try {
+    const ctx = await requireWorkspaceContext();
+    return await listCompanyContacts(ctx, id);
   } catch (error) {
     throw normalize(error);
   }

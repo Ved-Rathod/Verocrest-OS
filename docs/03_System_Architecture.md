@@ -610,14 +610,27 @@ Every event on the bus has this envelope:
 
 ### 8.3 Standard business events (v0.1 catalogue)
 
+**AMENDED (Amendment 004):** CRM lifecycle coverage is additive. Existing event names and
+payloads are unchanged; every successful Companies, Contacts, Leads, and Reminders mutation
+now emits exactly one lifecycle event.
+
 Every action listed emits a versioned event. Adding a subscriber never requires touching the emitter.
 
 | Event | Emitter | Payload shape (summary) |
 |---|---|---|
+| `company.created` | Company create | `{company_id}` |
+| `company.updated` | Company edit | `{company_id, changed_fields}` |
+| `company.archived` | Company archive | `{company_id, archived_at}` |
+| `company.merged` | Company merge | `{source_company_id, target_company_id}` |
+| `contact.created` | Contact create | `{contact_id}` |
 | `lead.ingested` | Import flows, form, API | `{source, raw_data, dedupe_key}` |
+| `lead.updated` | Lead edit without status transition | `{lead_id, changed_fields}` |
+| `lead.status_changed` | Lead edit with status transition | `{lead_id, previous_status, next_status}` |
+| `lead.archived` | Lead archive | `{lead_id, archived_at}` |
 | `lead.enriched` | Enrichment worker | `{enrichment_provider, added_fields}` |
 | `lead.scored` | Scoring service | `{fit_score, readiness_score, opportunity_score, top_signals}` |
 | `contact.updated` | Any contact write | `{changed_fields}` |
+| `contact.archived` | Contact archive | `{contact_id, archived_at}` |
 | `relationship.profile.recomputed` | Relationship Intelligence | `{prev, next, delta}` |
 | `website.audit.requested` | User action, scheduler | `{url, depth, audit_config}` |
 | `website.audit.completed` | Website Auditor | `{audit_id, overall_grade, category_grades, findings_count}` |
@@ -637,10 +650,21 @@ Every action listed emits a versioned event. Adding a subscriber never requires 
 | `deal.won` | User action | `{deal_id, close_value, currency}` |
 | `deal.lost` | User action | `{deal_id, reason}` |
 | `reminder.created` | User or automation | `{reminder_id, entity_type, due_at}` |
+| `reminder.updated` | User edit | `{reminder_id, changed_fields}` |
 | `reminder.due` | Scheduler | `{reminder_id, entity_type, due_at}` |
 | `reminder.completed` | User action | `{reminder_id, completed_at}` |
+| `reminder.snoozed` | User action | `{reminder_id, snoozed_until}` |
+| `reminder.archived` | User action | `{reminder_id, archived_at}` |
 | `ai.output.produced` | Model Router | `{capability, model, cost_usd, latency_ms}` |
 | `agent.action.executed` | Agent Runtime (dormant in v0.1) | `{agent_id, tier, action_type, reversibility}` |
+| `icp.upserted` | ICP editor (activate) | `{icp_id, version}` |
+| `icp.indexed` | Knowledge Indexer | `{icp_id, chunk_count}` |
+| `offer.upserted` | Offer editor (activate) | `{offer_id, version}` |
+| `offer.indexed` | Knowledge Indexer | `{offer_id, chunk_count}` |
+| `knowledge_doc.upserted` | KB document editor (save) | `{knowledge_doc_id, version}` |
+| `knowledge_doc.indexed` | Knowledge Indexer | `{knowledge_doc_id, chunk_count}` |
+
+*Catalogue-sync note (Sprints 4.1–4.3): `icp.*`/`offer.*`/`knowledge_doc.*` were already defined in `10` §11.1, `05` §3, and `04` §7.5/§10.7 (`05` line 1253 states they "will be added to architecture §8.3 catalogue on next revision"); the rows above bring this summary table in line with those frozen definitions. This is documentation synchronization, not a contract change — no amendment. Remaining onboarding events (`target.set`, `workspace.onboarded`) sync the same way in their sub-sprints.*
 
 **Naming convention:** `<domain>.<subject>.<past-tense-action>`. Domain-first grouping makes bus dashboards readable.
 

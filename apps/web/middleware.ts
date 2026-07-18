@@ -8,7 +8,10 @@ import { refreshSession } from '@verocrest/platform-integrations/supabase/middle
  * Never bypass: everything not explicitly public requires a session.
  */
 
-const PUBLIC_PREFIXES = ['/signin', '/signup', '/forgot-password', '/auth'];
+// `/api/inngest` is the Agency Event Bus serve endpoint (Sprint 3.2). It is
+// authenticated by Inngest request signatures (docs/12 §3), NOT by a user session,
+// so it must bypass the auth redirect or Inngest can never reach the subscribers.
+const PUBLIC_PREFIXES = ['/signin', '/signup', '/forgot-password', '/auth', '/api/inngest'];
 
 // Signed-in users have no business on these pages; bounce them home.
 const AUTH_PAGES = ['/signin', '/signup', '/forgot-password'];

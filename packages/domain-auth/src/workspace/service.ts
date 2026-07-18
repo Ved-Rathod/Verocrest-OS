@@ -45,7 +45,12 @@ export async function listMemberships(): Promise<WorkspaceMembership[]> {
       'role, joined_at, workspace:workspaces(id, slug, name, timezone, default_currency, locale, plan, created_at)',
     )
     .is('deleted_at', null)
-    .order('joined_at', { ascending: true });
+    // Deterministic tiebreaker on workspace_id — MUST match platform-tenancy's
+    // requireWorkspaceContext ordering so the switcher's "active" workspace and
+    // the CRUD layer's active workspace always agree (equal joined_at otherwise
+    // sorts arbitrarily and the cookie-less fallback diverges between modules).
+    .order('joined_at', { ascending: true })
+    .order('workspace_id', { ascending: true });
 
   if (error) {
     // 42P01 undefined_table / 42883 undefined_function → migration missing.

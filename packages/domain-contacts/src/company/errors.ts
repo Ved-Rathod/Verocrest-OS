@@ -40,6 +40,30 @@ export const companyErrors = {
     retryable: false,
   }),
 
+  // ── Merge (docs/10 §6.1.7) ──────────────────────────────────────────────────
+  mergeForbidden: (): ActionError => ({
+    code: 'FORBIDDEN',
+    category: 'authorization',
+    message: 'Only a workspace owner can merge companies.',
+    retryable: false,
+  }),
+
+  mergeSameCompany: (): ActionError => ({
+    code: 'VALIDATION_ERROR',
+    category: 'validation',
+    message: 'Choose a different company to merge into.',
+    retryable: false,
+    fieldErrors: { targetCompanyId: 'Pick a different company' },
+  }),
+
+  mergeTargetNotFound: (): ActionError => ({
+    code: 'NOT_FOUND',
+    category: 'business',
+    message: 'The company you’re merging into no longer exists.',
+    retryable: false,
+    fieldErrors: { targetCompanyId: 'No longer exists' },
+  }),
+
   internal: (): ActionError => ({
     code: 'INTERNAL',
     category: 'internal',
@@ -47,6 +71,22 @@ export const companyErrors = {
     retryable: true,
   }),
 } as const;
+
+/**
+ * Map errors raised by the merge_companies() rpc. The function raises named
+ * sentinels ('merge_forbidden', etc.); match on the message since the SQLSTATE
+ * alone (e.g. 42501) is ambiguous with generic RLS denials.
+ */
+export function mapMergeError(error: { code?: string; message?: string }): ActionError {
+  const m = error.message ?? '';
+  if (m.includes('merge_forbidden')) return companyErrors.mergeForbidden();
+  if (m.includes('merge_same_company')) return companyErrors.mergeSameCompany();
+  if (m.includes('merge_target_not_found')) return companyErrors.mergeTargetNotFound();
+  if (m.includes('merge_source_not_found') || m.includes('merge_cross_workspace')) {
+    return companyErrors.notFound();
+  }
+  return mapCompanyDbError(error);
+}
 
 /** Map a Supabase/PostgREST error to a canonical ActionError. */
 export function mapCompanyDbError(error: { code?: string; message?: string }): ActionError {

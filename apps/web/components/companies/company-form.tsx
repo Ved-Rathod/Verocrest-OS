@@ -4,11 +4,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createCompanyAction, updateCompanyAction } from '@verocrest/domain-contacts/actions';
-import { COMPANY_SIZES, COMPANY_SIZE_LABELS, type Company } from '@verocrest/domain-contacts';
+import {
+  COMPANY_SIZES,
+  COMPANY_SIZE_LABELS,
+  type Company,
+  type CustomFieldDefinition,
+} from '@verocrest/domain-contacts';
 import { Button, InputField, TextareaField, cn } from '@verocrest/ui-kit';
 import { FormError } from '@/components/auth/form-error';
+import { CustomFieldsInput } from '@/components/custom-fields/custom-fields-input';
 
-type Props = { mode: 'create' } | { mode: 'edit'; companyId: string; initial: Company };
+type Props = ({ mode: 'create' } | { mode: 'edit'; companyId: string; initial: Company }) & {
+  definitions: CustomFieldDefinition[];
+};
 
 export function CompanyForm(props: Props) {
   const router = useRouter();
@@ -127,6 +135,12 @@ export function CompanyForm(props: Props) {
         />
         This company is a client
       </label>
+
+      <CustomFieldsInput
+        definitions={props.definitions}
+        initial={initial?.customFields}
+        errors={fieldErrors}
+      />
 
       <div className="mt-2 flex items-center justify-end gap-2">
         <Button variant="ghost" type="button" onClick={() => router.push('/companies')}>

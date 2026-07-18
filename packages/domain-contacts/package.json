@@ -15,6 +15,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@verocrest/platform-event-bus": "workspace:*",
     "@verocrest/platform-integrations": "workspace:*",
     "@verocrest/platform-tenancy": "workspace:*",
     "zod": "catalog:"

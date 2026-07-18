@@ -2,15 +2,31 @@
   "name": "@verocrest/domain-leads",
   "version": "0.1.0",
   "private": true,
-  "description": "Scaffold only — implementation lands in Sprint 4 per BUILD_ROADMAP.",
+  "description": "Leads: lifecycle, CRUD, search/filter (Module 2). Landed Sprint 2.3 per amended docs/04 §5.1 (Amendment 001). LIE scoring lands Sprint 7.",
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./actions": "./src/actions.ts",
+    "./server": "./src/server.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@verocrest/platform-event-bus": "workspace:*",
+    "@verocrest/platform-integrations": "workspace:*",
+    "@verocrest/platform-tenancy": "workspace:*",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "next": "^15.0.0"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "@types/node": "catalog:",
+    "next": "^15.1.6",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

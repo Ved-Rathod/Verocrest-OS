@@ -3,6 +3,7 @@ export {
   createCompanyAction,
   updateCompanyAction,
   deleteCompanyAction,
+  mergeCompaniesAction,
   loadCompaniesPageAction,
 } from './company/actions';
 export {
@@ -11,4 +12,5 @@ export {
   deleteContactAction,
   loadContactsPageAction,
   searchCompaniesForPickerAction,
+  searchContactsForPickerAction,
 } from './contact/actions';

@@ -44,19 +44,21 @@ Nine principles, in strict priority order. Earlier principles win when they conf
 
 ### 2.1 Top-level surfaces (workspace context)
 
-Ordered exactly as they appear in the sidebar. This order is **fixed in v0.1** (per `06` §7.10 and §12 decision log).
+Ordered exactly as they appear in the sidebar. This order is **fixed in v0.1** (per `06` §7.10 and §12 decision log). **AMENDED (Amendment 002, 2026-07-03):** a dedicated **Leads** surface was inserted after Queue. **AMENDED (Amendment 003, 2026-07-03):** a dedicated **Reminders** surface was inserted after Companies, making the fixed order 13 items — see `BLUEPRINT_AMENDMENTS.md`.
 
 1. **Dashboard** (`/`) — home
 2. **Queue** (`/queue`) — Outreach Queue browser (Gold Leads context)
-3. **Contacts** (`/contacts`) — contacts + leads unified list, scoped by filter
-4. **Companies** (`/companies`) — companies list + Company Suggestions
-5. **Pipeline** (`/pipeline`) — kanban of active deals
-6. **Audits** (`/audits`) — audit browser
-7. **Outreach** (`/outreach`) — outreach history
-8. **Meetings** (`/meetings`) — upcoming + past
-9. **KB** (`/kb`) — Knowledge Documents (narrow v0.1 surface)
-10. **Offers** (`/offers`) — offer catalogue
-11. **Settings** (`/settings`) — settings shell (§3 of `06`)
+3. **Leads** (`/leads`) — dedicated leads list + detail (Amendment 002)
+4. **Contacts** (`/contacts`) — contacts list
+5. **Companies** (`/companies`) — companies list + Company Suggestions
+6. **Reminders** (`/reminders`) — follow-up reminders list + detail (Amendment 003)
+7. **Pipeline** (`/pipeline`) — kanban of active deals
+8. **Audits** (`/audits`) — audit browser
+9. **Outreach** (`/outreach`) — outreach history
+10. **Meetings** (`/meetings`) — upcoming + past
+11. **KB** (`/kb`) — Knowledge Documents (narrow v0.1 surface)
+12. **Offers** (`/offers`) — offer catalogue
+13. **Settings** (`/settings`) — settings shell (§3 of `06`)
 
 Below the top-level list, in a secondary section of the sidebar:
 

@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@verocrest/platform-integrations/supabase/server';
+import { buildEvent, journalRowFromEnvelope, publishToBus } from '@verocrest/platform-event-bus';
 import type { WorkspaceContext } from '@verocrest/platform-tenancy/server';
 import { decodeCursor, encodeCursor } from '../company/cursor';
 import {
@@ -12,6 +13,7 @@ import {
   type ContactDetail,
   type ContactPage,
 } from './types';
+import type { CustomFieldValues } from '../custom-fields/types';
 import type { ContactInput, ContactListParams } from './validation';
 
 /**
@@ -82,6 +84,49 @@ export async function listContacts(
   return { items, nextCursor };
 }
 
+/** Lightweight contact options for pickers (e.g. lead creation, docs/06 §3). */
+export type ContactOption = {
+  id: string;
+  name: string;
+  email: string | null;
+  companyName: string | null;
+};
+
+export async function searchContacts(
+  ctx: WorkspaceContext,
+  query: string,
+  limit = 10,
+): Promise<ContactOption[]> {
+  const supabase = await createSupabaseServerClient();
+  let q = supabase
+    .from('contacts')
+    .select('id, first_name, last_name, primary_email, company_name')
+    .eq('workspace_id', ctx.workspaceId)
+    .is('deleted_at', null);
+
+  const term = sanitizeSearch(query);
+  if (term) {
+    q = q.or(
+      `first_name.ilike.%${term}%,last_name.ilike.%${term}%,primary_email.ilike.%${term}%,company_name.ilike.%${term}%`,
+    );
+  }
+
+  const { data, error } = await q
+    .order('created_at', { ascending: false })
+    .limit(Math.min(limit, 25));
+  if (error) throw error;
+
+  return (data ?? []).map((r) => {
+    const name = [r.first_name, r.last_name].filter(Boolean).join(' ').trim();
+    return {
+      id: r.id as string,
+      name: name || (r.primary_email as string | null) || 'Unnamed contact',
+      email: (r.primary_email as string | null) ?? null,
+      companyName: (r.company_name as string | null) ?? null,
+    };
+  });
+}
+
 export async function getContactDetail(
   ctx: WorkspaceContext,
   id: string,
@@ -103,11 +148,20 @@ export async function createContact(
   ctx: WorkspaceContext,
   input: ContactInput,
   link: CompanyLink,
+  customFields: CustomFieldValues = {},
 ): Promise<Contact> {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('contacts')
-    .insert({
+  const id = crypto.randomUUID();
+  const event = buildEvent({
+    name: 'contact.created',
+    workspaceId: ctx.workspaceId,
+    actor: { type: 'user', id: ctx.userId },
+    subjectId: id,
+    payload: { contact_id: id },
+  });
+  const { data, error } = await supabase.rpc('create_contact_with_event', {
+    p_contact: {
+      id,
       workspace_id: ctx.workspaceId,
       company_id: link.companyId,
       company_name: link.companyName,
@@ -123,13 +177,16 @@ export async function createContact(
       notes: input.notes ?? null,
       tags: input.tags,
       is_client: input.isClient,
+      custom_fields: customFields,
       created_by: ctx.userId,
-    })
-    .select(CONTACT_SELECT)
-    .single();
+    },
+    p_event: journalRowFromEnvelope(event),
+  });
 
   if (error) throw error;
-  return toContact(contactRowSchema.parse(data));
+  const contact = toContact(contactRowSchema.parse(data));
+  await publishToBus(event); // post-commit fan-out (docs/10 §11.3)
+  return contact;
 }
 
 export async function updateContact(
@@ -137,11 +194,38 @@ export async function updateContact(
   id: string,
   input: ContactInput,
   link: CompanyLink,
+  customFields: CustomFieldValues = {},
 ): Promise<Contact | null> {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('contacts')
-    .update({
+  const event = buildEvent({
+    name: 'contact.updated',
+    workspaceId: ctx.workspaceId,
+    actor: { type: 'user', id: ctx.userId },
+    subjectId: id,
+    payload: {
+      changed_fields: [
+        'company_id',
+        'company_name',
+        'first_name',
+        'last_name',
+        'primary_email',
+        'phones',
+        'role_title',
+        'seniority',
+        'is_decision_maker',
+        'website_url',
+        'linkedin_url',
+        'notes',
+        'tags',
+        'is_client',
+        'custom_fields',
+      ],
+    },
+  });
+  const { data, error } = await supabase.rpc('update_contact_with_event', {
+    p_id: id,
+    p_workspace: ctx.workspaceId,
+    p_contact: {
       company_id: link.companyId,
       company_name: link.companyName,
       first_name: input.firstName ?? null,
@@ -156,28 +240,37 @@ export async function updateContact(
       notes: input.notes ?? null,
       tags: input.tags,
       is_client: input.isClient,
-    })
-    .eq('workspace_id', ctx.workspaceId)
-    .eq('id', id)
-    .is('deleted_at', null)
-    .select(CONTACT_SELECT)
-    .maybeSingle();
+      custom_fields: customFields,
+    },
+    p_event: journalRowFromEnvelope(event),
+  });
 
   if (error) throw error;
-  return data ? toContact(contactRowSchema.parse(data)) : null;
+  if (!data) return null;
+  const contact = toContact(contactRowSchema.parse(data));
+  await publishToBus(event); // post-commit fan-out (docs/10 §11.3)
+  return contact;
 }
 
 export async function softDeleteContact(ctx: WorkspaceContext, id: string): Promise<boolean> {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('contacts')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('workspace_id', ctx.workspaceId)
-    .eq('id', id)
-    .is('deleted_at', null)
-    .select('id')
-    .maybeSingle();
+  const archivedAt = new Date().toISOString();
+  const event = buildEvent({
+    name: 'contact.archived',
+    workspaceId: ctx.workspaceId,
+    actor: { type: 'user', id: ctx.userId },
+    subjectId: id,
+    payload: { contact_id: id, archived_at: archivedAt },
+    occurredAt: archivedAt,
+  });
+  const { data, error } = await supabase.rpc('archive_contact_with_event', {
+    p_id: id,
+    p_workspace: ctx.workspaceId,
+    p_event: journalRowFromEnvelope(event),
+  });
 
   if (error) throw error;
-  return data !== null;
+  if (data !== true) return false;
+  await publishToBus(event); // post-commit fan-out (docs/10 §11.3)
+  return true;
 }

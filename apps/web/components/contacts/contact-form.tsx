@@ -4,12 +4,20 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createContactAction, updateContactAction } from '@verocrest/domain-contacts/actions';
-import { SENIORITY_LABELS, SENIORITY_LEVELS, type ContactDetail } from '@verocrest/domain-contacts';
+import {
+  SENIORITY_LABELS,
+  SENIORITY_LEVELS,
+  type ContactDetail,
+  type CustomFieldDefinition,
+} from '@verocrest/domain-contacts';
 import { Button, InputField, TextareaField, cn } from '@verocrest/ui-kit';
 import { FormError } from '@/components/auth/form-error';
 import { CompanyPicker } from './company-picker';
+import { CustomFieldsInput } from '@/components/custom-fields/custom-fields-input';
 
-type Props = { mode: 'create' } | { mode: 'edit'; contactId: string; initial: ContactDetail };
+type Props = ({ mode: 'create' } | { mode: 'edit'; contactId: string; initial: ContactDetail }) & {
+  definitions: CustomFieldDefinition[];
+};
 
 export function ContactForm(props: Props) {
   const router = useRouter();
@@ -160,6 +168,12 @@ export function ContactForm(props: Props) {
           This contact is a client
         </label>
       </div>
+
+      <CustomFieldsInput
+        definitions={props.definitions}
+        initial={initial?.customFields}
+        errors={fieldErrors}
+      />
 
       <div className="mt-2 flex items-center justify-end gap-2">
         <Button

@@ -2,10 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Building2Icon, ExternalLinkIcon, MailIcon, PencilIcon, PhoneIcon } from 'lucide-react';
-import { CompaniesUnavailableError, getContactDetailPage } from '@verocrest/domain-contacts/server';
+import { getContactDetailPage, getCustomFieldDefinitions } from '@verocrest/domain-contacts/server';
 import { SENIORITY_LABELS, displayName } from '@verocrest/domain-contacts';
 import { Badge, Button, Card, CardBody } from '@verocrest/ui-kit';
 import { ContactActions } from '@/components/contacts/contact-actions';
+import { CustomFieldsDisplay } from '@/components/custom-fields/custom-fields-display';
 
 export const metadata: Metadata = { title: 'Contact' };
 export const dynamic = 'force-dynamic';
@@ -13,14 +14,16 @@ export const dynamic = 'force-dynamic';
 export default async function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  let contact;
-  try {
-    contact = await getContactDetailPage(id);
-  } catch (error) {
-    if (error instanceof CompaniesUnavailableError) throw error; // → error.tsx
-    throw error;
-  }
+  // getContactDetailPage normalizes failures (→ error.tsx); null = not-found.
+  const contact = await getContactDetailPage(id);
   if (!contact) notFound();
+  const definitions = await getCustomFieldDefinitions('contact');
+  const hasCustomFields = definitions.some(
+    (d) =>
+      d.fieldKey in contact.customFields &&
+      contact.customFields[d.fieldKey] !== '' &&
+      contact.customFields[d.fieldKey] != null,
+  );
 
   const name = displayName(contact);
   const phone = contact.phones[0]?.number ?? null;
@@ -122,6 +125,14 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
                 </Badge>
               ))}
             </div>
+          ) : null}
+
+          {hasCustomFields ? (
+            <Card>
+              <CardBody>
+                <CustomFieldsDisplay definitions={definitions} values={contact.customFields} />
+              </CardBody>
+            </Card>
           ) : null}
         </div>
 

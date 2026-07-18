@@ -17,14 +17,23 @@ const TITLES: Record<string, string> = {
   '/companies/new': 'New Company',
   '/contacts': 'Contacts',
   '/contacts/new': 'New Contact',
+  '/leads': 'Leads',
+  '/leads/new': 'New Lead',
+  '/reminders': 'Reminders',
+  '/reminders/new': 'New Reminder',
 };
 
 function titleFor(pathname: string): string {
   if (TITLES[pathname]) return TITLES[pathname];
   if (pathname.startsWith('/companies/') && pathname.endsWith('/edit')) return 'Edit Company';
+  if (pathname.startsWith('/companies/')) return 'Company';
   if (pathname.startsWith('/companies')) return 'Companies';
   if (pathname.startsWith('/contacts/') && pathname.endsWith('/edit')) return 'Edit Contact';
   if (pathname.startsWith('/contacts')) return 'Contacts';
+  if (pathname.startsWith('/leads/') && pathname.endsWith('/edit')) return 'Edit Lead';
+  if (pathname.startsWith('/leads')) return 'Leads';
+  if (pathname.startsWith('/reminders/') && pathname.endsWith('/edit')) return 'Edit Reminder';
+  if (pathname.startsWith('/reminders')) return 'Reminders';
   return 'Verocrest OS';
 }
 

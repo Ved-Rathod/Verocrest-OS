@@ -8,7 +8,13 @@ const nextConfig: NextConfig = {
     '@verocrest/ui-kit',
     '@verocrest/domain-auth',
     '@verocrest/domain-contacts',
+    '@verocrest/domain-knowledge',
+    '@verocrest/domain-leads',
+    '@verocrest/domain-reminders',
+    '@verocrest/platform-ai-router',
+    '@verocrest/platform-event-bus',
     '@verocrest/platform-integrations',
+    '@verocrest/platform-jobs',
     '@verocrest/platform-tenancy',
   ],
 };

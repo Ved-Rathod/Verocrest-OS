@@ -8,6 +8,7 @@ import {
 } from '@verocrest/domain-contacts/server';
 import { Button } from '@verocrest/ui-kit';
 import { CompaniesTable } from '@/components/companies/companies-table';
+import { CompanyArchivedNotice } from '@/components/companies/archived-notice';
 
 export const metadata: Metadata = { title: 'Companies' };
 export const dynamic = 'force-dynamic';
@@ -39,6 +40,7 @@ export default async function CompaniesPage({
 
   return (
     <div className="mx-auto w-full max-w-[1440px] p-4 lg:p-6">
+      <CompanyArchivedNotice />
       <div className="mb-4 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-fg-strong">Companies</h1>

@@ -1,4 +1,5 @@
 import {
+  AlarmClockIcon,
   BellIcon,
   BookOpenIcon,
   Building2Icon,
@@ -10,6 +11,7 @@ import {
   SendIcon,
   SettingsIcon,
   SquareKanbanIcon,
+  UserSearchIcon,
   UsersIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -24,19 +26,23 @@ export type NavItem = {
 };
 
 /**
- * Fixed 11-item primary navigation order per docs/07 §2.1 — frozen for v0.1.
- * Only Dashboard routes in Sprint 1.2; the rest are gated until their sprint.
+ * Fixed primary navigation order per docs/07 §2.1 — AMENDED (Amendment 002):
+ * a dedicated Leads item after Queue; AMENDED (Amendment 003): a dedicated
+ * Reminders item after Companies, making the order 13 items.
+ * Surfaces route when built; the rest are gated until their sprint (docs/07 §9.6).
  */
 export const primaryNav: NavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboardIcon, href: '/' },
   { label: 'Queue', icon: LayoutListIcon, landsIn: 'Sprint 7' },
+  { label: 'Leads', icon: UserSearchIcon, href: '/leads' },
   { label: 'Contacts', icon: UsersIcon, href: '/contacts' },
   { label: 'Companies', icon: Building2Icon, href: '/companies' },
+  { label: 'Reminders', icon: AlarmClockIcon, href: '/reminders' },
   { label: 'Pipeline', icon: SquareKanbanIcon, landsIn: 'Sprint 10' },
   { label: 'Audits', icon: SearchCheckIcon, landsIn: 'Sprint 8' },
   { label: 'Outreach', icon: SendIcon, landsIn: 'Sprint 9' },
   { label: 'Meetings', icon: CalendarIcon, landsIn: 'Sprint 10' },
-  { label: 'KB', icon: BookOpenIcon, landsIn: 'Sprint 6' },
+  { label: 'KB', icon: BookOpenIcon, href: '/kb' },
   { label: 'Offers', icon: PackageIcon, landsIn: 'Sprint 6' },
   { label: 'Settings', icon: SettingsIcon, href: '/settings/workspace' },
 ];

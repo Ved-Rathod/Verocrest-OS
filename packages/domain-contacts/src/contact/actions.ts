@@ -5,13 +5,17 @@ import { requireWorkspaceContext, WorkspaceContextError } from '@verocrest/platf
 import { fail, ok, type ActionResult } from '@verocrest/platform-tenancy';
 import { getCompany, searchCompanies, type CompanyOption } from '../company/service';
 import { toFieldErrors } from '../company/validation';
+import { listActiveDefinitionsSafe } from '../custom-fields/service';
+import { buildCustomFields } from '../custom-fields/validation';
 import { contactErrors, mapContactDbError } from './errors';
 import {
   createContact,
   listContacts,
+  searchContacts,
   softDeleteContact,
   updateContact,
   type CompanyLink,
+  type ContactOption,
 } from './service';
 import type { Contact, ContactPage } from './types';
 import { contactInputSchema, contactListParamsSchema, type ContactInput } from './validation';
@@ -70,7 +74,13 @@ export async function createContactAction(
     const link = await resolveCompanyLink(ctx, parsed.data);
     if (link === 'not_found') return fail(contactErrors.companyNotFound());
 
-    const contact = await createContact(ctx, parsed.data, link);
+    // Custom fields: validate cf__* against active definitions (server-authoritative;
+    // unknown cf__* keys ignored). Fail-soft read keeps create working pre-migration.
+    const defs = await listActiveDefinitionsSafe(ctx, 'contact');
+    const cf = buildCustomFields(defs, formData);
+    if (Object.keys(cf.errors).length > 0) return fail(contactErrors.validation(cf.errors));
+
+    const contact = await createContact(ctx, parsed.data, link, cf.values);
     revalidatePath('/contacts');
     return ok({ contact });
   } catch (error) {
@@ -94,7 +104,11 @@ export async function updateContactAction(
     const link = await resolveCompanyLink(ctx, parsed.data);
     if (link === 'not_found') return fail(contactErrors.companyNotFound());
 
-    const contact = await updateContact(ctx, id, parsed.data, link);
+    const defs = await listActiveDefinitionsSafe(ctx, 'contact');
+    const cf = buildCustomFields(defs, formData);
+    if (Object.keys(cf.errors).length > 0) return fail(contactErrors.validation(cf.errors));
+
+    const contact = await updateContact(ctx, id, parsed.data, link, cf.values);
     if (!contact) return fail(contactErrors.notFound());
     revalidatePath('/contacts');
     revalidatePath(`/contacts/${id}`);
@@ -138,6 +152,20 @@ export async function loadContactsPageAction(rawParams: {
     if (!parsed.success) return fail(contactErrors.validation(toFieldErrors(parsed.error)));
     const page = await listContacts(ctx, parsed.data);
     return ok(page);
+  } catch (error) {
+    if (error instanceof WorkspaceContextError) return fail(contactErrors.notAuthorized());
+    return fail(mapContactDbError(error as { code?: string; message?: string }));
+  }
+}
+
+/** Contact search for pickers (lead creation per Amendment 001). */
+export async function searchContactsForPickerAction(
+  query: string,
+): Promise<ActionResult<{ options: ContactOption[] }>> {
+  try {
+    const ctx = await requireWorkspaceContext();
+    const options = await searchContacts(ctx, query, 10);
+    return ok({ options });
   } catch (error) {
     if (error instanceof WorkspaceContextError) return fail(contactErrors.notAuthorized());
     return fail(mapContactDbError(error as { code?: string; message?: string }));

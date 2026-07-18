@@ -9,7 +9,7 @@
 // Companies
 export { COMPANY_SIZES, COMPANY_SIZE_LABELS } from './company/enums';
 export type { CompanySize } from './company/enums';
-export type { Company, CompanyPage } from './company/types';
+export type { Company, CompanyPage, CompanyDetail, CompanyContactRef } from './company/types';
 export type { CompanyOption } from './company/service';
 export { normalizeDomain } from './company/domain';
 export {
@@ -33,3 +33,9 @@ export type {
 } from './contact/types';
 export { contactInputSchema, contactListParamsSchema } from './contact/validation';
 export type { ContactInput, ContactListParams } from './contact/validation';
+export type { ContactOption } from './contact/service';
+
+// Custom fields (Sprint 2.6, docs/04 §20.1) — client-safe surface
+export { CUSTOM_FIELD_PREFIX, CUSTOM_FIELD_TYPES } from './custom-fields/enums';
+export type { CustomFieldType, CustomFieldEntityType } from './custom-fields/enums';
+export type { CustomFieldDefinition, CustomFieldValues } from './custom-fields/types';

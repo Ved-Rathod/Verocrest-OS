@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   companyInputSchema,
   companyListParamsSchema,
+  companyMergeSchema,
   parseTags,
   toFieldErrors,
 } from './validation';
+
+const A = '11111111-1111-1111-1111-111111111111';
+const B = '22222222-2222-2222-2222-222222222222';
 
 describe('companyInputSchema', () => {
   it('accepts a minimal valid company', () => {
@@ -67,5 +71,30 @@ describe('companyListParamsSchema', () => {
   });
   it('caps pageSize at 200 (docs/10 §12.3)', () => {
     expect(companyListParamsSchema.safeParse({ pageSize: 500 }).success).toBe(false);
+  });
+});
+
+describe('companyMergeSchema (docs/10 §6.1.7)', () => {
+  it('accepts two distinct company uuids', () => {
+    const r = companyMergeSchema.safeParse({ sourceCompanyId: A, targetCompanyId: B });
+    expect(r.success).toBe(true);
+  });
+
+  it('rejects merging a company into itself', () => {
+    const r = companyMergeSchema.safeParse({ sourceCompanyId: A, targetCompanyId: A });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(toFieldErrors(r.error).targetCompanyId).toBe('Pick a different company');
+  });
+
+  it('rejects a missing target with a field error', () => {
+    const r = companyMergeSchema.safeParse({ sourceCompanyId: A, targetCompanyId: '' });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(toFieldErrors(r.error)).toHaveProperty('targetCompanyId');
+  });
+
+  it('rejects a non-uuid target', () => {
+    expect(
+      companyMergeSchema.safeParse({ sourceCompanyId: A, targetCompanyId: 'nope' }).success,
+    ).toBe(false);
   });
 });

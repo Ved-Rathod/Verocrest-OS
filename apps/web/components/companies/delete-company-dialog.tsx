@@ -13,10 +13,15 @@ export function DeleteCompanyDialog({
   target,
   onClose,
   onDeleted,
+  redirectTo,
 }: {
   target: { id: string; name: string } | null;
   onClose: () => void;
   onDeleted: (id: string) => void;
+  /** Detail context: the action navigates server-side via redirect(replace) on
+   *  success (Sprint-2.4 fix — a client replace loses to revalidatePath's 404
+   *  re-render). The list context omits it and removes the row in place. */
+  redirectTo?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [state, formAction, pending] = useActionState(deleteCompanyAction, null);
@@ -57,6 +62,7 @@ export function DeleteCompanyDialog({
 
           <form action={formAction} className="flex items-center justify-end gap-2">
             <input type="hidden" name="companyId" value={target.id} />
+            {redirectTo ? <input type="hidden" name="redirectTo" value={redirectTo} /> : null}
             <Button variant="ghost" type="button" onClick={onClose} disabled={pending}>
               Cancel
             </Button>

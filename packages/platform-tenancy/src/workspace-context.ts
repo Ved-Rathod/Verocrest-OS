@@ -44,7 +44,13 @@ export async function requireWorkspaceContext(): Promise<WorkspaceContext> {
     .from('workspace_members')
     .select('workspace_id, role, joined_at')
     .is('deleted_at', null)
-    .order('joined_at', { ascending: true });
+    // Deterministic tiebreaker on workspace_id: without it, memberships with
+    // equal joined_at sort in arbitrary order, so the cookie-less fallback
+    // (data[0]) can resolve to a DIFFERENT workspace across requests — writes
+    // land in one workspace, later reads query another. Must match
+    // domain-auth's listMemberships ordering so both modules agree.
+    .order('joined_at', { ascending: true })
+    .order('workspace_id', { ascending: true });
 
   if (error)
     throw new WorkspaceContextError(`membership query failed (${error.code ?? 'unknown'})`);

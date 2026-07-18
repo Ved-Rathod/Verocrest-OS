@@ -2,15 +2,27 @@
   "name": "@verocrest/platform-ai-router",
   "version": "0.1.0",
   "private": true,
-  "description": "Scaffold only — implementation lands in Sprint 5 per BUILD_ROADMAP.",
+  "description": "Model Router (docs/09): the ONLY entry point for AI calls. 10-step pipeline, provider selection + failover + circuit breaker, Prompt Registry (3-tier), cost controls, streaming. Landed Sprint 3.3 (summarize-thread); memory/embeddings hooks activate Sprint 3.4.",
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
+    "@verocrest/platform-event-bus": "workspace:*",
+    "@verocrest/platform-integrations": "workspace:*",
+    "@verocrest/platform-tenancy": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

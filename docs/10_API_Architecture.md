@@ -1387,15 +1387,27 @@ Every API that produces a state change emits at least one event onto the Agency 
 
 ### 11.1 Emission per endpoint (summary)
 
+**AMENDED (Amendment 004):** every successful CRM mutation emits exactly one lifecycle event.
+The application constructs the envelope and a dedicated RPC persists the mutation and journal
+row atomically. Existing event names and payloads remain unchanged.
+
 | Endpoint | Events emitted |
 |---|---|
 | `POST /api/workspaces` | `workspace.created` |
 | `POST /api/workspaces/oauth complete Google connect` | `integration.google.connected` |
 | Onboarding hit 100% | `workspace.onboarded` |
-| `POST /api/companies` | `contact.updated` if a linked contact gains company_id |
-| `POST /api/contacts` | `contact.updated` (v1) |
+| `POST /api/companies` | `company.created` |
+| Company update | `company.updated` |
+| Company archive | `company.archived` |
+| Company merge | `company.merged` |
+| `POST /api/contacts` | `contact.created` |
+| Contact update | `contact.updated` (v1) |
+| Contact archive | `contact.archived` |
 | `POST /api/contacts/import` completed | `lead.ingested` × N |
 | `POST /api/leads` | `lead.ingested` |
+| Lead update without status change | `lead.updated` |
+| Lead update with status change | `lead.status_changed` |
+| Lead archive | `lead.archived` |
 | `POST /api/leads/:id/rescore` completed | `lead.enriched` → `lead.scored` |
 | `POST /api/audits` completed | `website.audit.completed` (+ `website.audit.delta` when applicable) |
 | `POST /api/ai/stream/draft-outreach-*` completed | `outreach.draft.generated`, `ai.output.produced` |
@@ -1414,7 +1426,10 @@ Every API that produces a state change emits at least one event onto the Agency 
 | `POST /book/.../book` | `meeting.booked` |
 | `POST /api/meetings/:id/complete` | `meeting.completed` |
 | `POST /api/reminders` | `reminder.created` |
+| Reminder update | `reminder.updated` |
 | `POST /api/reminders/:id/complete` | `reminder.completed` |
+| Reminder snooze | `reminder.snoozed` |
+| Reminder archive | `reminder.archived` |
 | Reminder scheduler cron | `reminder.due` |
 | `POST /api/kb` (activate) | `knowledge_doc.upserted` → `knowledge_doc.indexed` |
 | `POST /api/kb/:id/reindex` | `knowledge_doc.upserted` (content_hash unchanged → no-op indexer) |

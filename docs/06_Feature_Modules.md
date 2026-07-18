@@ -331,9 +331,9 @@ function refreshOutreachQueueForLead(leadId): Promise<void>;
 - `/companies/suggestions` — review surface for ambiguous CSV → company matches (accept, reject, edit, merge)
 - `/contacts/import` — 3-step CSV import (upload → map → dry-run → import) per `05` §3.7
 
-**Leads (surfaced primarily via other modules)**
-- Lead list is a scoped filter over `/contacts` (contact.is_client=false + has lead row); no dedicated `/leads` route in v0.1 to keep the UX flat
-- Lead score card is embedded in Contact detail
+**Leads**
+- ~~Lead list is a scoped filter over `/contacts`; no dedicated `/leads` route in v0.1~~ **AMENDED (Amendment 002, 2026-07-03):** Verocrest OS ships a dedicated Leads surface — `/leads` (list), `/leads/new`, `/leads/:id` (detail), `/leads/:id/edit` — with a sidebar entry after Queue. See `BLUEPRINT_AMENDMENTS.md`.
+- Lead score card is embedded in Contact detail (unchanged; LIE lands Sprint 7)
 
 **ICPs**
 - `/settings/icps` — list active + inactive

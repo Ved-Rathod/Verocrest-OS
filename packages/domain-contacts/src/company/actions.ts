@@ -1,15 +1,25 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect, RedirectType } from 'next/navigation';
 import { requireWorkspaceContext, WorkspaceContextError } from '@verocrest/platform-tenancy/server';
 import { fail, ok, type ActionResult } from '@verocrest/platform-tenancy';
+import { listActiveDefinitionsSafe } from '../custom-fields/service';
+import { buildCustomFields } from '../custom-fields/validation';
 import { normalizeDomain } from './domain';
-import { companyErrors, mapCompanyDbError } from './errors';
-import { createCompany, listCompanies, softDeleteCompany, updateCompany } from './service';
+import { companyErrors, mapCompanyDbError, mapMergeError } from './errors';
+import {
+  createCompany,
+  listCompanies,
+  mergeCompanies,
+  softDeleteCompany,
+  updateCompany,
+} from './service';
 import type { Company, CompanyPage } from './types';
 import {
   companyInputSchema,
   companyListParamsSchema,
+  companyMergeSchema,
   parseTags,
   toFieldErrors,
   type CompanyInput,
@@ -55,7 +65,13 @@ export async function createCompanyAction(
     const domainError = validateDomain(parsed.data);
     if (domainError) return fail(companyErrors.validation(domainError));
 
-    const company = await createCompany(ctx, parsed.data);
+    // Custom fields: validate submitted cf__* values against active definitions
+    // (server-authoritative; unknown cf__* keys are ignored, never persisted).
+    const defs = await listActiveDefinitionsSafe(ctx, 'company');
+    const cf = buildCustomFields(defs, formData);
+    if (Object.keys(cf.errors).length > 0) return fail(companyErrors.validation(cf.errors));
+
+    const company = await createCompany(ctx, parsed.data, cf.values);
     revalidatePath('/companies');
     return ok({ company });
   } catch (error) {
@@ -79,9 +95,14 @@ export async function updateCompanyAction(
     const domainError = validateDomain(parsed.data);
     if (domainError) return fail(companyErrors.validation(domainError));
 
-    const company = await updateCompany(ctx, id, parsed.data);
+    const defs = await listActiveDefinitionsSafe(ctx, 'company');
+    const cf = buildCustomFields(defs, formData);
+    if (Object.keys(cf.errors).length > 0) return fail(companyErrors.validation(cf.errors));
+
+    const company = await updateCompany(ctx, id, parsed.data, cf.values);
     if (!company) return fail(companyErrors.notFound());
     revalidatePath('/companies');
+    revalidatePath(`/companies/${id}`);
     revalidatePath(`/companies/${id}/edit`);
     return ok({ company });
   } catch (error) {
@@ -94,6 +115,20 @@ export async function deleteCompanyAction(
   _prev: ActionResult<{ deleted: boolean }> | null,
   formData: FormData,
 ): Promise<ActionResult<{ deleted: boolean }>> {
+  // Archive-from-DETAIL leaves the page SERVER-SIDE (Sprint-2.4 fix, mirrored to
+  // leads/reminders): revalidatePath in an action re-renders the CURRENT route in
+  // the same response, so a soft-deleted detail page hits notFound() and a 404
+  // commits in place before any client router.replace() can run. When a redirect
+  // is requested we skip revalidatePath (the list is force-dynamic) and navigate
+  // via redirect(replace) — OUTSIDE the try/catch, since redirect() throws
+  // NEXT_REDIRECT. Same-origin relative paths only. The LIST dialog omits
+  // redirectTo and keeps optimistic row removal + the revalidate purge.
+  const rawRedirect = formData.get('redirectTo');
+  const redirectTo =
+    typeof rawRedirect === 'string' && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+      ? rawRedirect
+      : null;
+
   try {
     const ctx = await requireWorkspaceContext();
     const id = formData.get('companyId');
@@ -101,12 +136,56 @@ export async function deleteCompanyAction(
 
     const deleted = await softDeleteCompany(ctx, id);
     if (!deleted) return fail(companyErrors.notFound());
-    revalidatePath('/companies');
-    return ok({ deleted: true });
+    if (!redirectTo) revalidatePath('/companies');
   } catch (error) {
     if (error instanceof WorkspaceContextError) return fail(companyErrors.notAuthorized());
     return fail(mapCompanyDbError(error as { code?: string; message?: string }));
   }
+
+  if (redirectTo) redirect(redirectTo, RedirectType.replace);
+  return ok({ deleted: true });
+}
+
+/**
+ * Merge a duplicate company into a survivor (docs/10 §6.1.7). Owner-only (checked
+ * here AND in the rpc). Invoked from the SOURCE company's detail page, which the
+ * merge archives — so, like archive-from-detail, we navigate SERVER-SIDE to the
+ * survivor's detail (redirect + replace, no revalidate of the current route) to
+ * avoid the notFound()-in-place 404 race. redirect() is outside the try/catch.
+ */
+export async function mergeCompaniesAction(
+  _prev: ActionResult<{ movedContacts: number; movedLeads: number }> | null,
+  formData: FormData,
+): Promise<ActionResult<{ movedContacts: number; movedLeads: number }>> {
+  // Validate up front (pure, no throw) so `targetId` is definitely assigned for
+  // the trailing redirect, which MUST sit outside the try/catch (redirect throws
+  // NEXT_REDIRECT — a catch would swallow the navigation into a false error).
+  const parsed = companyMergeSchema.safeParse({
+    sourceCompanyId: formData.get('sourceCompanyId'),
+    targetCompanyId: formData.get('targetCompanyId'),
+  });
+  if (!parsed.success) return fail(companyErrors.validation(toFieldErrors(parsed.error)));
+  const targetId = parsed.data.targetCompanyId;
+
+  let movedContacts = 0;
+  let movedLeads = 0;
+  try {
+    const ctx = await requireWorkspaceContext();
+    if (ctx.role !== 'owner') return fail(companyErrors.mergeForbidden());
+    const result = await mergeCompanies(ctx, parsed.data.sourceCompanyId, targetId);
+    movedContacts = result.movedContacts;
+    movedLeads = result.movedLeads;
+    // No revalidatePath: we redirect to the survivor (force-dynamic); revalidating
+    // here would re-render the just-archived source detail into a 404.
+  } catch (error) {
+    if (error instanceof WorkspaceContextError) return fail(companyErrors.notAuthorized());
+    return fail(mapMergeError(error as { code?: string; message?: string }));
+  }
+
+  redirect(
+    `/companies/${targetId}?merged=1&mc=${movedContacts}&ml=${movedLeads}`,
+    RedirectType.replace,
+  );
 }
 
 /** "Load more" pagination for the client table (docs/10 §12.3). */

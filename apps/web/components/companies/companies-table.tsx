@@ -114,7 +114,7 @@ export function CompaniesTable({
                 >
                   <td className="px-3 py-2">
                     <Link
-                      href={`/companies/${c.id}/edit`}
+                      href={`/companies/${c.id}`}
                       className="font-medium text-fg hover:text-primary"
                     >
                       {c.name}

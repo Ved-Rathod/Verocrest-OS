@@ -68,6 +68,23 @@ export const companyListParamsSchema = z.object({
 
 export type CompanyListParams = z.infer<typeof companyListParamsSchema>;
 
+/** Merge input (docs/10 §6.1.7). Same-company is rejected here before the rpc. */
+export const companyMergeSchema = z
+  .object({
+    sourceCompanyId: z.string({ required_error: 'Missing source' }).uuid('Invalid source company'),
+    targetCompanyId: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+      z.string({ required_error: 'Choose a company to merge into' }).uuid('Choose a valid company'),
+    ),
+  })
+  .strict()
+  .refine((v) => v.sourceCompanyId !== v.targetCompanyId, {
+    path: ['targetCompanyId'],
+    message: 'Pick a different company',
+  });
+
+export type CompanyMergeInput = z.infer<typeof companyMergeSchema>;
+
 export function toFieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};
   for (const issue of error.issues) {

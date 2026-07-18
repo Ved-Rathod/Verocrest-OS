@@ -1,0 +1,26 @@
+{
+  "name": "@verocrest/platform-jobs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agency Event Bus runtime (docs/03 §8, docs/10 §11): the typed Inngest client, event subscribers, and nightly journal reconciliation. Landed Sprint 3.2. Consumes the provider-agnostic catalogue/envelope/publisher from @verocrest/platform-event-bus.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@verocrest/platform-ai-router": "workspace:*",
+    "@verocrest/platform-event-bus": "workspace:*",
+    "@verocrest/platform-integrations": "workspace:*",
+    "inngest": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

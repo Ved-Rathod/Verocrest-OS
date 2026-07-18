@@ -2,15 +2,25 @@
   "name": "@verocrest/platform-event-bus",
   "version": "0.1.0",
   "private": true,
-  "description": "Scaffold only — implementation lands in Sprint 5 per BUILD_ROADMAP.",
+  "description": "Agency Event Bus foundation: typed event catalogue + envelope + durable event_journal read/replay (docs/03 §8). Landed Sprint 3.1. Inngest runtime lands Sprint 3.2.",
   "type": "module",
+  "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@verocrest/platform-integrations": "workspace:*",
+    "@verocrest/platform-tenancy": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
