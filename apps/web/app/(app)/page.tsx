@@ -10,7 +10,9 @@ import {
 import { Card, CardBody, CardHeader, CardTitle } from '@verocrest/ui-kit';
 import { requireWorkspaceContext } from '@verocrest/platform-tenancy/server';
 import { getOnboardingProgress } from '@verocrest/domain-auth/server';
+import { getCurrentTargets } from '@verocrest/domain-revenue/server';
 import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist';
+import { RevenueTargetWidget } from '@/components/revenue/revenue-target-widget';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,6 +84,9 @@ export default async function DashboardPage() {
     );
   }
 
+  // Only fetched once the dashboard actually renders (skipped during onboarding).
+  const currentTargets = await getCurrentTargets(ctx);
+
   return (
     <div className="mx-auto w-full max-w-[1600px] p-4 lg:p-6">
       {/* Filter bar placeholder (07 §6.5) — becomes functional in Sprint 12 */}
@@ -96,9 +101,13 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {widgets.map((w) => (
-          <DashboardWidget key={w.title} spec={w} />
-        ))}
+        {widgets.map((w) =>
+          w.title === 'Revenue Target' ? (
+            <RevenueTargetWidget key={w.title} targets={currentTargets} />
+          ) : (
+            <DashboardWidget key={w.title} spec={w} />
+          ),
+        )}
       </div>
 
       {/* Flywheel Cycle Time tile (FR-RPT-007) */}

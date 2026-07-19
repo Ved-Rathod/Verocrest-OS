@@ -12,6 +12,7 @@ const TABS = [
   { label: 'Workspace', href: '/settings/workspace' },
   { label: 'AI Usage', href: '/settings/ai/usage' },
   { label: 'Prompt Library', href: '/settings/ai/prompts' },
+  { label: 'Revenue Targets', href: '/settings/revenue' },
   { label: 'Integrations', href: '/settings/integrations' },
 ] as const;
 

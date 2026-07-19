@@ -19,6 +19,7 @@ export type OnboardingSignals = {
   knowledgeDocCount: number;
   knowledgeDocTypeCount: number;
   leadCount: number;
+  hasTarget: boolean;
 };
 
 /**
@@ -92,11 +93,11 @@ export function buildOnboardingProgress(
     {
       key: 'revenue_target',
       title: 'Set your Revenue Target',
-      description: 'Monthly and quarterly targets. Available in a later setup step.',
-      href: null,
-      cta: 'Coming soon',
-      status: 'coming_soon',
-      required: false,
+      description: 'Define your monthly, quarterly, or yearly revenue goal.',
+      href: '/settings/revenue/new',
+      cta: 'Set Revenue Target',
+      status: signals.hasTarget ? 'done' : 'not_started',
+      required: true,
     },
     {
       key: 'website_audit',
@@ -129,7 +130,7 @@ async function gatherSignals(
   const ws = ctx.workspaceId;
   const count = { head: true, count: 'exact' as const };
 
-  const [google, company, icp, offer, leads, kbTypes, workspace] = await Promise.all([
+  const [google, company, icp, offer, leads, kbTypes, target, workspace] = await Promise.all([
     supabase
       .from('integration_connections')
       .select('id', count)
@@ -157,13 +158,18 @@ async function gatherSignals(
       .is('deleted_at', null)
       .limit(50),
     supabase
+      .from('workspace_targets')
+      .select('id', count)
+      .eq('workspace_id', ws)
+      .is('deleted_at', null),
+    supabase
       .from('workspaces')
       .select('onboarded_at, onboarding_dismissed_at')
       .eq('id', ws)
       .maybeSingle(),
   ]);
 
-  for (const r of [google, company, icp, offer, leads, kbTypes, workspace]) {
+  for (const r of [google, company, icp, offer, leads, kbTypes, target, workspace]) {
     if (r.error) throw r.error;
   }
 
@@ -176,6 +182,7 @@ async function gatherSignals(
     knowledgeDocCount: docTypes.length,
     knowledgeDocTypeCount: new Set(docTypes).size,
     leadCount: leads.count ?? 0,
+    hasTarget: (target.count ?? 0) > 0,
   };
   const wsRow = workspace.data as {
     onboarded_at: string | null;

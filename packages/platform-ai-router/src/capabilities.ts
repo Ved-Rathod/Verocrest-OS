@@ -71,6 +71,23 @@ export const CAPABILITY_CONFIGS: Partial<Record<Capability, CapabilityConfig>> =
     timeoutMs: 60_000,
     hardMaxUsd: 0.05,
   },
+  // Revenue-target embedder (docs/09 §5.5, docs/04 §13.2) — a single short fact per
+  // target, indexed under scope 'workspace' so AI can answer "what's our monthly
+  // target?". Landed Sprint 4.7.
+  'embed-target': {
+    capability: 'embed-target',
+    module: 'knowledge',
+    primary: 'openai',
+    fallback: null,
+    models: {
+      openai: 'text-embedding-3-small',
+      mock: 'mock-embedding',
+    },
+    streamingDefault: false,
+    maxOutputTokens: 0,
+    timeoutMs: 5_000, // embed-single class (docs/09 §11.1) — one short fact
+    hardMaxUsd: 0.02,
+  },
   // Knowledge-document embedder (docs/09 §5.5, docs/04 §7.5). Landed Sprint 4.3.
   'embed-knowledge': {
     capability: 'embed-knowledge',

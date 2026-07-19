@@ -204,7 +204,9 @@ const offerErrors = {
       category: 'business',
       // In development the real Postgres message is surfaced so the failing
       // insert is diagnosable from the UI; production stays generic.
-      message: detail ? `Something went wrong: ${detail}` : 'Something went wrong. Please try again.',
+      message: detail
+        ? `Something went wrong: ${detail}`
+        : 'Something went wrong. Please try again.',
       retryable: true,
     }),
   unauthorized: () =>

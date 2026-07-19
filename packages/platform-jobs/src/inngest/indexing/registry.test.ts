@@ -12,6 +12,7 @@ describe('index descriptor registry', () => {
       'icp.upserted',
       'knowledge_doc.upserted',
       'offer.upserted',
+      'target.set',
     ]);
   });
 
@@ -76,6 +77,38 @@ describe('index descriptor registry', () => {
   describe('ICP descriptor has no afterIndex (chunk-tracking is KB-only)', () => {
     it('is undefined', () => {
       expect(INDEX_DESCRIPTORS['icp.upserted']!.afterIndex).toBeUndefined();
+    });
+  });
+
+  describe('Revenue-target descriptor (Sprint 4.7 D4 — scope workspace, no new scope)', () => {
+    const d = INDEX_DESCRIPTORS['target.set']!;
+    it('reads workspace_targets, scope workspace, embed-target', () => {
+      expect(d.table).toBe('workspace_targets');
+      expect(d.scope).toBe('workspace');
+      expect(d.embedCapability).toBe('embed-target');
+      expect(d.setIndexedRpc).toBe('set_target_indexed_with_event');
+      expect(d.indexedEventName).toBe('target.indexed');
+    });
+    it('builds a single revenue-target fact string', () => {
+      const text = d.buildSourceText({
+        period: 'monthly',
+        period_start: '2026-07-01',
+        period_end: '2026-07-31',
+        revenue_target: 50000,
+        currency: 'USD',
+      });
+      expect(text).toContain('Monthly revenue target: USD 50000');
+      expect(text).toContain('2026-07-01 to 2026-07-31');
+    });
+    it('payload + metadata shapes', () => {
+      expect(d.buildIndexedPayload({ id: 't1' }, 1)).toEqual({ target_id: 't1', chunk_count: 1 });
+      expect(d.metadataBase({ period: 'monthly' })).toEqual({
+        source: 'revenue_target',
+        period: 'monthly',
+      });
+    });
+    it('has NO afterIndex hook (targets do not track chunks)', () => {
+      expect(d.afterIndex).toBeUndefined();
     });
   });
 

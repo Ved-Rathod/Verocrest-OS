@@ -666,6 +666,8 @@ Every action listed emits a versioned event. Adding a subscriber never requires 
 
 *Catalogue-sync note (Sprints 4.1–4.3): `icp.*`/`offer.*`/`knowledge_doc.*` were already defined in `10` §11.1, `05` §3, and `04` §7.5/§10.7 (`05` line 1253 states they "will be added to architecture §8.3 catalogue on next revision"); the rows above bring this summary table in line with those frozen definitions. This is documentation synchronization, not a contract change — no amendment. Remaining onboarding events (`target.set`, `workspace.onboarded`) sync the same way in their sub-sprints.*
 
+*Sprint 4.5–4.7 additions: `integration.google.connected` (sync) + `integration.google.disconnected` (Amendment 006); `workspace.onboarded` (sync, Sprint 4.6); `target.set` (sync) + `target.indexed` (Amendment 008). The v0.1 catalogue now holds 28 events.*
+
 **Naming convention:** `<domain>.<subject>.<past-tense-action>`. Domain-first grouping makes bus dashboards readable.
 
 ### 8.4 Versioning

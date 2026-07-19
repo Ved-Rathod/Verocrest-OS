@@ -1516,6 +1516,12 @@ CREATE TABLE dashboard_metrics_daily (
 
 ### 13.2 `workspace_targets`
 
+> **AMENDED (Amendment 008)** — Sprint 4.7 adds three additive indexing columns
+> (`is_indexed`, `last_indexed_at`, `content_hash`) so each target is vectorized into
+> AI Memory (scope `workspace`) via the shared Knowledge Indexer. Frozen columns +
+> the unique `(workspace_id, period, period_start)` index are unchanged. Live
+> attainment (current/forecast) is deferred to Sprint 10 (Deals); no `current_amount`.
+
 ```sql
 CREATE TYPE target_period_enum AS ENUM ('monthly', 'quarterly', 'annual');
 

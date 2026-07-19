@@ -287,4 +287,29 @@ already-frozen `integration.google.connected`:
 
 ---
 
-*Next amendment: 008.*
+## Amendment 008 — Revenue Targets: AI-indexing columns, `target.indexed`, deferred attainment
+
+| | |
+|---|---|
+| **Status** | Approved |
+| **Date** | 2026-07-19 |
+| **Approved by** | Founder (Sprint 4.7 PHASE 2, decisions D1–D5) |
+| **Trigger** | Sprint 4.7 implements Revenue Targets on the **frozen `workspace_targets`** (`04` §13.2) — no separate `revenue_targets` table (D1). Reusing the descriptor-driven Knowledge Indexer to make targets AI-retrievable requires per-entity indexing state the frozen §13.2 shape lacks, and the indexing-complete event is new. |
+| **Documents changed** | `04` §13.2 (additive columns), `03` §8.3 catalogue (additive) |
+
+### Decision
+1. **`workspace_targets` gains three additive indexing columns** — `is_indexed boolean not null default false`, `last_indexed_at timestamptz`, `content_hash text not null default ''` — mirroring the other indexed entities (ICP/Offer/KB). The frozen columns and the unique `(workspace_id, period, period_start)` index are unchanged.
+2. **`target.set`** (frozen, `05` §3.6) is added to the event catalogue as a **sync** (no change) and is the indexer's trigger. **`target.indexed`** (payload `{target_id, chunk_count}`, subject_type `target`) is a **new** event for indexing completion, symmetric to `icp.indexed`/`offer.indexed`.
+3. **Indexed under the existing `'workspace'` memory scope** via a new embed-only capability `embed-target` — **no new `memory_scope_enum` value** (D4).
+4. **Live attainment is deferred to Sprint 10 (Deals)** (D2): no `current_amount` column; the detail page + FR-DASH-006 widget render an explicit "attainment activates when revenue data exists" state. No forecast/progress/remaining widgets are added (D3) — only the frozen FR-DASH-006 "Revenue Target" widget is populated.
+5. **No `active`/`status` column** (D5): one-target-per-period is the frozen unique index; "current/active" is derived from whether today ∈ `[period_start, period_end]`.
+6. **Onboarding follow-through (Amendment 007):** the Revenue Target step flips from non-blocking `coming_soon` to a **required, presence-detected** step (`workspace_targets` exists). Required onboarding steps: 6 → **7**. (Website Audit remains the sole `coming_soon` until Sprint 8.)
+
+### Impact
+- Event catalogue grows to **28** (`target.set` sync + `target.indexed` new); schema version 1; no existing names change.
+- `workspace_targets` is additive-only; RLS is member select/insert/update (workspace isolation via `is_workspace_member`).
+- No product workflow beyond Revenue Targets changes; attainment math is explicitly out of scope until Deals land.
+
+---
+
+*Next amendment: 009.*

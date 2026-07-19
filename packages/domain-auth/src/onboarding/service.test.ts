@@ -9,6 +9,7 @@ const EMPTY: OnboardingSignals = {
   knowledgeDocCount: 0,
   knowledgeDocTypeCount: 0,
   leadCount: 0,
+  hasTarget: false,
 };
 
 const ALL: OnboardingSignals = {
@@ -19,18 +20,29 @@ const ALL: OnboardingSignals = {
   knowledgeDocCount: 3,
   knowledgeDocTypeCount: 2,
   leadCount: 5,
+  hasTarget: true,
 };
 
 const state = { dismissed: false, onboardedAt: null };
 
 describe('buildOnboardingProgress (docs/05 §3, Amendment 007)', () => {
-  it('has 6 required steps and 2 non-blocking coming-soon steps', () => {
+  it('has 7 required steps and 1 non-blocking coming-soon step (Sprint 4.7)', () => {
     const p = buildOnboardingProgress(EMPTY, state);
-    expect(p.requiredTotal).toBe(6);
+    expect(p.requiredTotal).toBe(7);
     expect(p.items).toHaveLength(8);
     const comingSoon = p.items.filter((i) => i.status === 'coming_soon');
-    expect(comingSoon.map((i) => i.key)).toEqual(['revenue_target', 'website_audit']);
+    expect(comingSoon.map((i) => i.key)).toEqual(['website_audit']);
     expect(comingSoon.every((i) => !i.required)).toBe(true);
+  });
+
+  it('Revenue Target is now a required, detectable step (Sprint 4.7)', () => {
+    const rt = buildOnboardingProgress(EMPTY, state).items.find((i) => i.key === 'revenue_target');
+    expect(rt?.required).toBe(true);
+    expect(rt?.status).toBe('not_started');
+    expect(rt?.href).toBe('/settings/revenue/new');
+    expect(
+      buildOnboardingProgress(ALL, state).items.find((i) => i.key === 'revenue_target')?.status,
+    ).toBe('done');
   });
 
   it('includes the founder-approved "Create first Company" required step', () => {
@@ -45,9 +57,9 @@ describe('buildOnboardingProgress (docs/05 §3, Amendment 007)', () => {
     expect(p.complete).toBe(false);
   });
 
-  it('completes when all six required steps are done — coming-soon does NOT block', () => {
+  it('completes when all seven required steps are done — coming-soon does NOT block', () => {
     const p = buildOnboardingProgress(ALL, state);
-    expect(p.requiredDone).toBe(6);
+    expect(p.requiredDone).toBe(7);
     expect(p.complete).toBe(true);
   });
 

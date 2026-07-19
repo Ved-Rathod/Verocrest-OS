@@ -32,6 +32,8 @@ export type EventPayloads = {
   'integration.google.connected': { connection_id: string; provider: string; email: string | null };
   'integration.google.disconnected': { connection_id: string; provider: string };
   'workspace.onboarded': { completed_steps: number };
+  'target.set': { target_id: string; period: string };
+  'target.indexed': { target_id: string; chunk_count: number };
 };
 
 export type EventName = keyof EventPayloads;
@@ -63,6 +65,8 @@ export const EVENT_VERSIONS = {
   'integration.google.connected': 1,
   'integration.google.disconnected': 1,
   'workspace.onboarded': 1,
+  'target.set': 1,
+  'target.indexed': 1,
 } as const satisfies Record<EventName, number>;
 
 export const EVENT_SUBJECT_TYPE = {
@@ -92,6 +96,8 @@ export const EVENT_SUBJECT_TYPE = {
   'integration.google.connected': 'integration',
   'integration.google.disconnected': 'integration',
   'workspace.onboarded': 'workspace',
+  'target.set': 'target',
+  'target.indexed': 'target',
 } as const satisfies Record<EventName, string>;
 
 export const EVENT_NAMES = Object.keys(EVENT_VERSIONS) as EventName[];

@@ -64,6 +64,15 @@ function offerSourceText(row: Record<string, unknown>): string {
   return parts.join('\n\n');
 }
 
+/** Revenue-target fact (docs/04 §13.2, Sprint 4.7). One short line per target. */
+function targetSourceText(row: Record<string, unknown>): string {
+  const period = str(row['period']);
+  const label = period ? `${period[0]!.toUpperCase()}${period.slice(1)}` : 'Revenue';
+  const amount = row['revenue_target'];
+  const currency = str(row['currency']);
+  return `${label} revenue target: ${currency} ${amount ?? ''} for ${str(row['period_start'])} to ${str(row['period_end'])}.`.trim();
+}
+
 export const INDEX_DESCRIPTORS: Partial<Record<EventName, IndexDescriptor>> = {
   'icp.upserted': {
     table: 'icps',
@@ -114,6 +123,19 @@ export const INDEX_DESCRIPTORS: Partial<Record<EventName, IndexDescriptor>> = {
         chunks,
       });
     },
+  },
+  // Revenue targets (Sprint 4.7 D4): indexed under the existing 'workspace' scope —
+  // no new scope. Trigger is the frozen `target.set` event; no afterIndex hook.
+  'target.set': {
+    table: 'workspace_targets',
+    selectColumns: 'id, period, period_start, period_end, revenue_target, currency, content_hash',
+    scope: 'workspace',
+    embedCapability: 'embed-target',
+    buildSourceText: targetSourceText,
+    metadataBase: (row) => ({ source: 'revenue_target', period: row['period'] }),
+    setIndexedRpc: 'set_target_indexed_with_event',
+    indexedEventName: 'target.indexed',
+    buildIndexedPayload: (row, chunkCount) => ({ target_id: row['id'], chunk_count: chunkCount }),
   },
 };
 
