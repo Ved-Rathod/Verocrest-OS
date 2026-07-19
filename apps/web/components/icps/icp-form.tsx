@@ -6,6 +6,19 @@ import { createIcpAction, updateIcpAction } from '@verocrest/domain-knowledge/ac
 import { COMPANY_SIZES, type Icp } from '@verocrest/domain-knowledge';
 import { Button, InputField, TextareaField } from '@verocrest/ui-kit';
 import { FormError } from '@/components/auth/form-error';
+import { unmappedFieldErrors } from '@/components/forms/form-errors';
+
+const INLINE_ERROR_KEYS = [
+  'name',
+  'shortDescription',
+  'narrative',
+  'targetIndustries',
+  'targetGeographies',
+  'targetRevenueMin',
+  'targetRevenueMax',
+  'targetRevenueCurrency',
+  'disqualifiers',
+] as const;
 
 const SIZE_LABELS: Record<string, string> = {
   solo: 'Solo',
@@ -23,11 +36,16 @@ export function IcpForm(props: Props) {
   const [state, formAction, pending] = useActionState(action, null);
   const initial = props.mode === 'edit' ? props.icp : undefined;
   const fieldErrors = state?.error?.fieldErrors;
+  const bannerErrors = unmappedFieldErrors(fieldErrors, INLINE_ERROR_KEYS);
 
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>
       {props.mode === 'edit' ? <input type="hidden" name="id" value={props.icp.id} /> : null}
-      {state?.error && !fieldErrors ? <FormError message={state.error.message} /> : null}
+      {state?.error && (!fieldErrors || bannerErrors.length > 0) ? (
+        <FormError
+          message={bannerErrors.length > 0 ? bannerErrors.join(' ') : state.error.message}
+        />
+      ) : null}
 
       <InputField
         label="Name"

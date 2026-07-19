@@ -13,6 +13,9 @@ import {
 } from '@verocrest/domain-knowledge';
 import { Button, InputField, TextareaField } from '@verocrest/ui-kit';
 import { FormError } from '@/components/auth/form-error';
+import { unmappedFieldErrors } from '@/components/forms/form-errors';
+
+const INLINE_ERROR_KEYS = ['title', 'slug', 'content', 'tags', 'summary'] as const;
 
 type LinkOption = { id: string; name: string; type: 'offer' | 'icp' };
 type Props = ({ mode: 'create' } | { mode: 'edit'; doc: KnowledgeDoc }) & { links: LinkOption[] };
@@ -25,6 +28,7 @@ export function KbForm(props: Props) {
   const [state, formAction, pending] = useActionState(action, null);
   const initial = props.mode === 'edit' ? props.doc : undefined;
   const fieldErrors = state?.error?.fieldErrors;
+  const bannerErrors = unmappedFieldErrors(fieldErrors, INLINE_ERROR_KEYS);
 
   // Encode the linked entity as "type:id" in one select for a compact editor.
   const initialLink =
@@ -39,7 +43,11 @@ export function KbForm(props: Props) {
       {props.mode === 'edit' ? <input type="hidden" name="id" value={props.doc.id} /> : null}
       <input type="hidden" name="linkedEntityType" value={linkType} />
       <input type="hidden" name="linkedEntityId" value={linkId} />
-      {state?.error && !fieldErrors ? <FormError message={state.error.message} /> : null}
+      {state?.error && (!fieldErrors || bannerErrors.length > 0) ? (
+        <FormError
+          message={bannerErrors.length > 0 ? bannerErrors.join(' ') : state.error.message}
+        />
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <InputField

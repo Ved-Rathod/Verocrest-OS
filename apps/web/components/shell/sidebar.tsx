@@ -5,8 +5,9 @@ import { usePathname } from 'next/navigation';
 import { LogOutIcon, SearchIcon, XIcon } from 'lucide-react';
 import { cn } from '@verocrest/ui-kit';
 import { signOut } from '@verocrest/domain-auth/actions';
-import { primaryNav, secondaryNav, type NavItem } from './nav-items';
+import { onboardingNav, primaryNav, secondaryNav, type NavItem } from './nav-items';
 import { WorkspaceSwitcher } from './workspace-switcher';
+import { useWorkspace } from '@/components/workspace/workspace-provider';
 
 export type ShellUser = {
   email: string | null;
@@ -27,6 +28,8 @@ export function Sidebar({
   mobileOpen: boolean;
   onMobileClose: () => void;
 }) {
+  const { active } = useWorkspace();
+  const showOnboarding = !active.onboardedAt;
   return (
     <>
       {/* Mobile backdrop */}
@@ -77,6 +80,11 @@ export function Sidebar({
         {/* Primary navigation — fixed order per docs/07 §2.1 */}
         <nav aria-label="Primary" className="flex-1 overflow-y-auto px-3 py-3">
           <ul className="space-y-0.5">
+            {showOnboarding ? (
+              <li key={onboardingNav.label}>
+                <NavEntry item={onboardingNav} onNavigate={onMobileClose} />
+              </li>
+            ) : null}
             {primaryNav.map((item) => (
               <li key={item.label}>
                 <NavEntry item={item} onNavigate={onMobileClose} />

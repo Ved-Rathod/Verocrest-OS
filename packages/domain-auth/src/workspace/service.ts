@@ -42,7 +42,7 @@ export async function listMemberships(): Promise<WorkspaceMembership[]> {
   const { data, error } = await supabase
     .from('workspace_members')
     .select(
-      'role, joined_at, workspace:workspaces(id, slug, name, timezone, default_currency, locale, plan, created_at)',
+      'role, joined_at, workspace:workspaces(id, slug, name, timezone, default_currency, locale, plan, created_at, onboarded_at)',
     )
     .is('deleted_at', null)
     // Deterministic tiebreaker on workspace_id — MUST match platform-tenancy's

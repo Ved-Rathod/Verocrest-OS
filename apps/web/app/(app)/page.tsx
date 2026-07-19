@@ -8,6 +8,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Card, CardBody, CardHeader, CardTitle } from '@verocrest/ui-kit';
+import { requireWorkspaceContext } from '@verocrest/platform-tenancy/server';
+import { getOnboardingProgress } from '@verocrest/domain-auth/server';
+import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * Dashboard shell per docs/07 §6.5 — six widgets in FIXED order (FR-DASH-001–006)
@@ -62,7 +67,21 @@ const widgets: WidgetSpec[] = [
   },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  // First-run takeover (docs/07 §9): the onboarding checklist owns the content
+  // region while incomplete and not dismissed. After dismissal it never blocks
+  // navigation — the dashboard renders normally and the checklist stays reachable
+  // via the Onboarding nav item.
+  const ctx = await requireWorkspaceContext();
+  const progress = await getOnboardingProgress(ctx);
+  if (!progress.complete && !progress.dismissed) {
+    return (
+      <div className="mx-auto w-full max-w-[1600px] p-4 lg:p-6">
+        <OnboardingChecklist progress={progress} />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1600px] p-4 lg:p-6">
       {/* Filter bar placeholder (07 §6.5) — becomes functional in Sprint 12 */}

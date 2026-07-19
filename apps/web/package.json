@@ -13,6 +13,7 @@
     "@verocrest/config": "workspace:*",
     "@verocrest/domain-auth": "workspace:*",
     "@verocrest/domain-contacts": "workspace:*",
+    "@verocrest/domain-integrations": "workspace:*",
     "@verocrest/domain-knowledge": "workspace:*",
     "@verocrest/domain-leads": "workspace:*",
     "@verocrest/domain-reminders": "workspace:*",

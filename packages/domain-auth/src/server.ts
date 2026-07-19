@@ -10,3 +10,16 @@ export {
   requireMembership,
 } from './workspace/service';
 export { isPasswordBreached } from './hibp';
+export {
+  getOnboardingProgress,
+  markWorkspaceOnboarded,
+  dismissOnboarding,
+  buildOnboardingProgress,
+  type OnboardingSignals,
+} from './onboarding/service';
+export type {
+  OnboardingProgress,
+  OnboardingItem,
+  OnboardingItemKey,
+  OnboardingItemStatus,
+} from './onboarding/types';

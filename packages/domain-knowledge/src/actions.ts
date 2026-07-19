@@ -198,11 +198,13 @@ const offerErrors = {
       retryable: false,
       fieldErrors: fieldErrorsMap,
     }),
-  unexpected: () =>
+  unexpected: (detail?: string) =>
     fail<{ offer: Offer }>({
       code: 'INTERNAL',
       category: 'business',
-      message: 'Something went wrong. Please try again.',
+      // In development the real Postgres message is surfaced so the failing
+      // insert is diagnosable from the UI; production stays generic.
+      message: detail ? `Something went wrong: ${detail}` : 'Something went wrong. Please try again.',
       retryable: true,
     }),
   unauthorized: () =>
@@ -221,6 +223,17 @@ const offerErrors = {
     }),
 };
 
+/** Structured log of the underlying failure — never swallow it (docs debugging). */
+function logOfferFailure(op: 'create' | 'update', err: unknown): string | undefined {
+  const e = err as { message?: string; stack?: string; pg?: Record<string, unknown> };
+  console.error(`[offer] ${op} failed`, {
+    message: e.message,
+    pg: e.pg,
+    stack: e.stack,
+  });
+  return process.env.NODE_ENV !== 'production' ? e.message : undefined;
+}
+
 export async function createOfferAction(
   _prev: ActionResult<{ offer: Offer }> | null,
   formData: FormData,
@@ -235,8 +248,7 @@ export async function createOfferAction(
     offerId = offer.id;
   } catch (err) {
     if (err instanceof WorkspaceContextError) return offerErrors.unauthorized();
-    console.error('[offer] create failed', err);
-    return offerErrors.unexpected();
+    return offerErrors.unexpected(logOfferFailure('create', err));
   }
   revalidatePath('/settings/offers');
   redirect(`/settings/offers/${offerId}`, RedirectType.push);
@@ -257,8 +269,7 @@ export async function updateOfferAction(
     if (!offer) return offerErrors.notFound();
   } catch (err) {
     if (err instanceof WorkspaceContextError) return offerErrors.unauthorized();
-    console.error('[offer] update failed', err);
-    return offerErrors.unexpected();
+    return offerErrors.unexpected(logOfferFailure('update', err));
   }
   revalidatePath('/settings/offers');
   revalidatePath(`/settings/offers/${id}`);

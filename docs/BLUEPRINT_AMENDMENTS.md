@@ -232,4 +232,59 @@ Implement `ai.output.produced` (v1) through the existing Event Bus pipeline:
 
 ---
 
-*Next amendment: 006.*
+## Amendment 006 — `integration.google.disconnected` lifecycle event
+
+| | |
+|---|---|
+| **Status** | Approved |
+| **Date** | 2026-07-19 |
+| **Approved by** | Founder (Sprint 4.5 PHASE 2 decision D3) |
+| **Trigger** | Sprint 4.5 (Google OAuth Foundation) journals the connection lifecycle. `integration.google.connected` is already referenced in the frozen event ledger (`10` §11 lines "Google OAuth successful callback → `integration.google.connected`"), so it is a catalogue **sync**, not a change. Its symmetric counterpart `integration.google.disconnected` is **not** present anywhere in `01–12`; journaling it (D3) introduces a new event name and therefore requires an amendment. |
+| **Documents changed** | `03` §8.3 catalogue (additive) via next-revision sync; `04`/`10`/`11` unchanged |
+
+### Decision
+
+Add `integration.google.disconnected` (v1) as a journaled business event, symmetric to the
+already-frozen `integration.google.connected`:
+
+- **Payload:** `{connection_id, provider}`.
+- **Subject binding:** `subject_type = 'integration'`, `subject_id = integration_connections.id`.
+- **Actor:** `user` (the workspace member performing the disconnect).
+- **Atomicity:** same transactional pattern as CRM writes — `disconnect_google_with_event(p_id, p_workspace, p_event)` flips the row to `revoked` and inserts the `event_journal` row in one transaction; `publishToBus` fans out post-commit.
+- `integration.google.connected` is implemented as a **sync** of the frozen ledger entry (no amendment); it is listed here only for context.
+
+### Impact
+
+- Event catalogue grows by two names to 25 (`connected` sync + `disconnected` new); schema version 1; no existing event names change.
+- `event_journal` schema unchanged; append-only unchanged.
+- No product workflow, AI capability, or CRM schema changes. Subscribers are free to react later (none in v0.1).
+
+---
+
+## Amendment 007 — Version 0.1 onboarding completion = implemented setup steps
+
+| | |
+|---|---|
+| **Status** | Approved |
+| **Date** | 2026-07-19 |
+| **Approved by** | Founder (Sprint 4.6 PHASE 2) |
+| **Trigger** | Sprint 4.6 (Founder Onboarding) implements the `05` §3 checklist. Two of the seven frozen items — **Revenue Target** (`workspace_targets`, SPRINT 6 item 6) and **Website Audit** (SPRINT 8) — have no built surface, so `05` §3.9 ("all 7 Done → `workspace.onboarded`") is unreachable in v0.1. Founder ruled these two are non-blocking. |
+| **Documents changed** | `05` §3.1/§3.9 (completion semantics), `03` §8.3 catalogue sync (`workspace.onboarded`) |
+
+### Decision
+
+1. **v0.1 onboarding completion is based on the currently implemented setup steps.** The required, completion-counting steps are the six with shipped surfaces: **Connect Google, Create first Company, Configure ICP, Add Offer, Upload Knowledge Documents, Import Leads.** When all six are Done, the workspace is onboarded: `onboarded_at` is stamped and `workspace.onboarded` fires once.
+2. **Revenue Target and Website Audit remain visible as `Coming Soon` items** in the checklist but do **not** block completion. When their sprints land they convert to required, completing the frozen 7-item intent.
+3. **"Create first Company"** is added as a required onboarding step (it was not represented among the frozen seven); it reuses the existing Companies surface.
+4. `workspace.onboarded` (payload `{completed_steps}`, subject_type `workspace`) is added to the catalogue as a **sync** of the frozen `05` §3.9 event.
+
+### Impact
+
+- Completion is **derived** from presence-probes (no per-item stored state → automatic resume). Only `workspaces.onboarded_at` + `workspaces.onboarding_dismissed_at` persist (additive columns).
+- Event catalogue grows to **26** (adds `workspace.onboarded`); schema version 1; no existing names change.
+- No redesign of the reused ICP/Offer/KB/Leads/Companies/Integrations surfaces; the checklist only deep-links to them.
+- `05` §3.9's 7/7 celebration + `workspace.onboarded` intent is preserved and simply re-scoped to the implemented steps for v0.1; the two deferred items light up as their sprints land.
+
+---
+
+*Next amendment: 008.*

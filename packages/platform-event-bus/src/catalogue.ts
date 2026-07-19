@@ -29,6 +29,9 @@ export type EventPayloads = {
   'offer.indexed': { offer_id: string; chunk_count: number };
   'knowledge_doc.upserted': { knowledge_doc_id: string; version: number };
   'knowledge_doc.indexed': { knowledge_doc_id: string; chunk_count: number };
+  'integration.google.connected': { connection_id: string; provider: string; email: string | null };
+  'integration.google.disconnected': { connection_id: string; provider: string };
+  'workspace.onboarded': { completed_steps: number };
 };
 
 export type EventName = keyof EventPayloads;
@@ -57,6 +60,9 @@ export const EVENT_VERSIONS = {
   'offer.indexed': 1,
   'knowledge_doc.upserted': 1,
   'knowledge_doc.indexed': 1,
+  'integration.google.connected': 1,
+  'integration.google.disconnected': 1,
+  'workspace.onboarded': 1,
 } as const satisfies Record<EventName, number>;
 
 export const EVENT_SUBJECT_TYPE = {
@@ -83,6 +89,9 @@ export const EVENT_SUBJECT_TYPE = {
   'offer.indexed': 'offer',
   'knowledge_doc.upserted': 'knowledge_doc',
   'knowledge_doc.indexed': 'knowledge_doc',
+  'integration.google.connected': 'integration',
+  'integration.google.disconnected': 'integration',
+  'workspace.onboarded': 'workspace',
 } as const satisfies Record<EventName, string>;
 
 export const EVENT_NAMES = Object.keys(EVENT_VERSIONS) as EventName[];

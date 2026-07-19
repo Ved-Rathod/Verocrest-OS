@@ -12,6 +12,31 @@ import { offerInputSchema, slugify, type OfferInput } from './validation';
  * Knowledge Indexer consumes to vectorize positioning/ROI (scope 'offer').
  */
 
+/**
+ * Surface the exact Postgres failure instead of letting a bare PostgrestError
+ * bubble up as a generic "something went wrong". Logs code/message/details/hint
+ * + the payload that triggered it, then returns an Error carrying the same so
+ * the caller's catch can log a stack and (in dev) show the real message.
+ */
+type PgError = { code?: string; message?: string; details?: string; hint?: string };
+
+function logRpcError(fn: string, error: PgError, payload: unknown): Error {
+  console.error(`[offer] RPC ${fn} failed`, {
+    code: error.code,
+    message: error.message,
+    details: error.details,
+    hint: error.hint,
+    payload,
+  });
+  const err = new Error(
+    `${fn} failed: ${error.message ?? 'unknown'}${error.code ? ` [${error.code}]` : ''}` +
+      (error.details ? ` — ${error.details}` : '') +
+      (error.hint ? ` (hint: ${error.hint})` : ''),
+  );
+  (err as Error & { pg?: PgError }).pg = error;
+  return err;
+}
+
 export async function listOffers(ctx: WorkspaceContext): Promise<OfferListItem[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -114,18 +139,19 @@ export async function createOffer(
         payload: { offer_id: id, version: 1 },
       })
     : null;
+  const p_offer = {
+    id,
+    workspace_id: ctx.workspaceId,
+    ...offerRowFields(input, slug, contentHash),
+    status: activate ? 'active' : 'draft',
+    version: 1,
+    created_by: ctx.userId,
+  };
   const { data, error } = await supabase.rpc('create_offer_with_event', {
-    p_offer: {
-      id,
-      workspace_id: ctx.workspaceId,
-      ...offerRowFields(input, slug, contentHash),
-      status: activate ? 'active' : 'draft',
-      version: 1,
-      created_by: ctx.userId,
-    },
+    p_offer,
     p_event: event ? journalRowFromEnvelope(event) : null,
   });
-  if (error) throw error;
+  if (error) throw logRpcError('create_offer_with_event', error, p_offer);
   const offer = toOffer(offerRowSchema.parse(data));
   if (event) await publishToBus(event); // fan out → Knowledge Indexer
   return offer;
@@ -169,17 +195,18 @@ export async function updateOffer(
         payload: { offer_id: id, version: current.version as number },
       })
     : null;
+  const p_offer = {
+    ...offerRowFields(input, slug, contentHash),
+    status: activate ? 'active' : 'draft',
+    is_indexed: isIndexed,
+  };
   const { data, error } = await supabase.rpc('update_offer_with_event', {
     p_id: id,
     p_workspace: ctx.workspaceId,
-    p_offer: {
-      ...offerRowFields(input, slug, contentHash),
-      status: activate ? 'active' : 'draft',
-      is_indexed: isIndexed,
-    },
+    p_offer,
     p_event: event ? journalRowFromEnvelope(event) : null,
   });
-  if (error) throw error;
+  if (error) throw logRpcError('update_offer_with_event', error, { p_id: id, ...p_offer });
   if (!data) return null;
   const offer = toOffer(offerRowSchema.parse(data));
   if (event) await publishToBus(event);

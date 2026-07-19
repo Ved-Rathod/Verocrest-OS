@@ -27,6 +27,12 @@ export {
   workspaceRowSchema,
 } from './workspace/types';
 export type { Workspace, WorkspaceMembership, WorkspaceRole } from './workspace/types';
+export type {
+  OnboardingProgress,
+  OnboardingItem,
+  OnboardingItemKey,
+  OnboardingItemStatus,
+} from './onboarding/types';
 export { workspaceSettingsSchema, isValidTimezone } from './workspace/validation';
 export type { WorkspaceSettingsInput } from './workspace/validation';
 export { defaultWorkspaceName, generateWorkspaceSlug, slugify } from './workspace/slug';

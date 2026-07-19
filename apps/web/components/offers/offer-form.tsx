@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useState } from 'react';
+import { useActionState, useRef, useState } from 'react';
 import { createOfferAction, updateOfferAction } from '@verocrest/domain-knowledge/actions';
 import {
   BILLING_CADENCES,
@@ -14,6 +14,21 @@ import {
 } from '@verocrest/domain-knowledge';
 import { Button, InputField, TextareaField } from '@verocrest/ui-kit';
 import { FormError } from '@/components/auth/form-error';
+import { unmappedFieldErrors } from '@/components/forms/form-errors';
+
+// Field names that render their own inline error below. Any validation issue on
+// another (structured/nested) path is surfaced in the banner instead of vanishing.
+const INLINE_ERROR_KEYS = [
+  'name',
+  'slug',
+  'shortDescription',
+  'positioning',
+  'targetIndustries',
+  'price',
+  'priceMax',
+  'currency',
+  'roiNarrative',
+] as const;
 
 type IcpOption = { id: string; name: string };
 type Props = ({ mode: 'create' } | { mode: 'edit'; offer: Offer }) & { icps: IcpOption[] };
@@ -34,6 +49,17 @@ export function OfferForm(props: Props) {
   const [state, formAction, pending] = useActionState(action, null);
   const initial = props.mode === 'edit' ? props.offer : undefined;
   const fieldErrors = state?.error?.fieldErrors;
+  // Structured/nested validation errors (e.g. an empty deliverable title) have no
+  // inline field to attach to; surface them in the banner instead of silently
+  // dropping the submission.
+  const bannerErrors = unmappedFieldErrors(fieldErrors, INLINE_ERROR_KEYS);
+  // draft vs activate is carried by a hidden input written synchronously on click,
+  // because the submit button's name/value is not included in the FormData that
+  // the useActionState form action receives (the submitter isn't forwarded).
+  const intentRef = useRef<HTMLInputElement>(null);
+  const setIntent = (intent: 'draft' | 'activate') => {
+    if (intentRef.current) intentRef.current.value = intent;
+  };
 
   const [deliverables, setDeliverables] = useState<Deliverable[]>(initial?.deliverables ?? []);
   const [guarantees, setGuarantees] = useState<Guarantee[]>(initial?.guarantees ?? []);
@@ -58,6 +84,8 @@ export function OfferForm(props: Props) {
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>
       {props.mode === 'edit' ? <input type="hidden" name="id" value={props.offer.id} /> : null}
+      {/* Save intent — defaults to draft; each submit button sets it on click. */}
+      <input ref={intentRef} type="hidden" name="intent" defaultValue="draft" />
       {/* Structured fields travel as JSON (form manages them client-side). */}
       <input type="hidden" name="deliverables" value={JSON.stringify(deliverables)} />
       <input type="hidden" name="guarantees" value={JSON.stringify(guarantees)} />
@@ -65,7 +93,11 @@ export function OfferForm(props: Props) {
       <input type="hidden" name="requirements" value={JSON.stringify(requirements)} />
       <input type="hidden" name="roiMetrics" value={JSON.stringify(roiMetrics)} />
 
-      {state?.error && !fieldErrors ? <FormError message={state.error.message} /> : null}
+      {state?.error && (!fieldErrors || bannerErrors.length > 0) ? (
+        <FormError
+          message={bannerErrors.length > 0 ? bannerErrors.join(' ') : state.error.message}
+        />
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <InputField
@@ -330,10 +362,15 @@ export function OfferForm(props: Props) {
             Cancel
           </Button>
         </Link>
-        <Button type="submit" name="intent" value="draft" variant="secondary" disabled={pending}>
+        <Button
+          type="submit"
+          variant="secondary"
+          disabled={pending}
+          onClick={() => setIntent('draft')}
+        >
           Save as Draft
         </Button>
-        <Button type="submit" name="intent" value="activate" disabled={pending}>
+        <Button type="submit" disabled={pending} onClick={() => setIntent('activate')}>
           {pending ? 'Saving…' : 'Save & Activate'}
         </Button>
       </div>

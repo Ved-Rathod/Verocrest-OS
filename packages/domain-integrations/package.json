@@ -1,27 +1,23 @@
 {
-  "name": "@verocrest/domain-auth",
+  "name": "@verocrest/domain-integrations",
   "version": "0.1.0",
   "private": true,
-  "description": "Identity: signup, signin, OAuth, password reset, session (Module 1). Landed Sprint 1.3; workspaces land with the Workspace sprint.",
+  "description": "External-integration connections (docs/11 §11). Sprint 4.5: Google OAuth foundation — workspace-scoped account connect/reconnect/disconnect + encrypted token storage + lazy refresh. No Gmail/Calendar/Drive.",
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./server": "./src/server.ts",
     "./actions": "./src/actions.ts",
-    "./workspace/actions": "./src/workspace/actions.ts",
-    "./onboarding/actions": "./src/onboarding/actions.ts"
+    "./server": "./src/server.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@verocrest/config": "workspace:*",
     "@verocrest/platform-event-bus": "workspace:*",
     "@verocrest/platform-integrations": "workspace:*",
-    "@verocrest/platform-tenancy": "workspace:*",
-    "zod": "catalog:"
+    "@verocrest/platform-tenancy": "workspace:*"
   },
   "peerDependencies": {
     "next": "^15.0.0"

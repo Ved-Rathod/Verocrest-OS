@@ -7,6 +7,7 @@ import {
   LayoutDashboardIcon,
   LayoutListIcon,
   PackageIcon,
+  RocketIcon,
   SearchCheckIcon,
   SendIcon,
   SettingsIcon,
@@ -50,3 +51,10 @@ export const primaryNav: NavItem[] = [
 export const secondaryNav: NavItem[] = [
   { label: 'Notifications', icon: BellIcon, landsIn: 'Sprint 3' },
 ];
+
+/**
+ * First-run onboarding entry (docs/07 §2.1). Rendered above the primary nav only
+ * while the workspace is not yet onboarded; the Sidebar gates it on
+ * `workspace.onboardedAt`.
+ */
+export const onboardingNav: NavItem = { label: 'Setup', icon: RocketIcon, href: '/onboarding' };

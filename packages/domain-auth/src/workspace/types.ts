@@ -17,6 +17,7 @@ export const workspaceRowSchema = z.object({
   locale: z.string(),
   plan: z.string(),
   created_at: z.string(),
+  onboarded_at: z.string().nullable().optional(),
 });
 
 export type Workspace = {
@@ -28,6 +29,8 @@ export type Workspace = {
   locale: string;
   plan: string;
   createdAt: string;
+  /** Set once the onboarding checklist first reaches completion (docs/05 §3.9). */
+  onboardedAt: string | null;
 };
 
 export type WorkspaceMembership = Workspace & { role: WorkspaceRole };
@@ -42,5 +45,6 @@ export function toWorkspace(row: z.infer<typeof workspaceRowSchema>): Workspace 
     locale: row.locale,
     plan: row.plan,
     createdAt: row.created_at,
+    onboardedAt: row.onboarded_at ?? null,
   };
 }
