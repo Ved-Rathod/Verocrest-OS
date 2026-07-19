@@ -16,6 +16,7 @@ export type Capability =
   | 'embed-icp'
   | 'embed-offer'
   | 'embed-target'
+  | 'embed-audit'
   | 'embed-memory-generic'
   | 'classify-company-suggestion'
   // Website Auditor (Module 3)

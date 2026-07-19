@@ -23,6 +23,7 @@ export const MEMORY_POLICY: Partial<Record<Capability, MemoryPolicy>> = {
   'embed-offer': { scopes: [], topK: 0, minSimilarity: 0 },
   'embed-knowledge': { scopes: [], topK: 0, minSimilarity: 0 },
   'embed-target': { scopes: [], topK: 0, minSimilarity: 0 },
+  'embed-audit': { scopes: [], topK: 0, minSimilarity: 0 },
 };
 
 export function getMemoryPolicy(capability: Capability): MemoryPolicy {

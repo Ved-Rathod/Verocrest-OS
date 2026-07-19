@@ -68,6 +68,9 @@ importers:
       '@verocrest/domain-revenue':
         specifier: workspace:*
         version: link:../../packages/domain-revenue
+      '@verocrest/domain-website-intelligence':
+        specifier: workspace:*
+        version: link:../../packages/domain-website-intelligence
       '@verocrest/platform-ai-router':
         specifier: workspace:*
         version: link:../../packages/platform-ai-router
@@ -379,10 +382,32 @@ importers:
         version: 5.9.3
 
   packages/domain-website-intelligence:
+    dependencies:
+      '@verocrest/platform-event-bus':
+        specifier: workspace:*
+        version: link:../platform-event-bus
+      '@verocrest/platform-integrations':
+        specifier: workspace:*
+        version: link:../platform-integrations
+      '@verocrest/platform-tenancy':
+        specifier: workspace:*
+        version: link:../platform-tenancy
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.1
+      next:
+        specifier: ^15.1.6
+        version: 15.5.20(@opentelemetry/api@1.9.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.0)
 
   packages/platform-ai-router:
     dependencies:

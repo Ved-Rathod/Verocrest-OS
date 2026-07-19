@@ -13,6 +13,7 @@ describe('index descriptor registry', () => {
       'knowledge_doc.upserted',
       'offer.upserted',
       'target.set',
+      'website.audit.completed',
     ]);
   });
 
@@ -77,6 +78,34 @@ describe('index descriptor registry', () => {
   describe('ICP descriptor has no afterIndex (chunk-tracking is KB-only)', () => {
     it('is undefined', () => {
       expect(INDEX_DESCRIPTORS['icp.upserted']!.afterIndex).toBeUndefined();
+    });
+  });
+
+  describe('Website-audit descriptor (Sprint 4.8 — scope audit, append-only)', () => {
+    const d = INDEX_DESCRIPTORS['website.audit.completed']!;
+    it('reads audits, scope audit, embed-audit, softDelete false', () => {
+      expect(d.table).toBe('audits');
+      expect(d.scope).toBe('audit');
+      expect(d.embedCapability).toBe('embed-audit');
+      expect(d.setIndexedRpc).toBe('set_audit_indexed_with_event');
+      expect(d.indexedEventName).toBe('website.audit.indexed');
+      expect(d.softDelete).toBe(false);
+    });
+    it('embeds the pre-built signals.summary', () => {
+      expect(
+        d.buildSourceText({ signals: { summary: 'Problems: no HTTPS. Tech: WordPress.' } }),
+      ).toBe('Problems: no HTTPS. Tech: WordPress.');
+      expect(d.buildSourceText({ signals: {} })).toBe('');
+    });
+    it('payload + metadata shapes', () => {
+      expect(d.buildIndexedPayload({ id: 'a1' }, 2)).toEqual({ audit_id: 'a1', chunk_count: 2 });
+      expect(d.metadataBase({ url_normalized: 'https://x.com' })).toEqual({
+        source: 'website_audit',
+        url: 'https://x.com',
+      });
+    });
+    it('has NO afterIndex hook', () => {
+      expect(d.afterIndex).toBeUndefined();
     });
   });
 

@@ -20,6 +20,7 @@ export type OnboardingSignals = {
   knowledgeDocTypeCount: number;
   leadCount: number;
   hasTarget: boolean;
+  hasAudit: boolean;
 };
 
 /**
@@ -102,11 +103,11 @@ export function buildOnboardingProgress(
     {
       key: 'website_audit',
       title: 'Run your first Website Audit',
-      description: 'Audit a lead’s website. Available in a later setup step.',
-      href: null,
-      cta: 'Coming soon',
-      status: 'coming_soon',
-      required: false,
+      description: 'Analyze a website for conversion, SEO, and trust signals.',
+      href: '/settings/website',
+      cta: 'Analyze a Website',
+      status: signals.hasAudit ? 'done' : 'not_started',
+      required: true,
     },
   ];
 
@@ -130,46 +131,49 @@ async function gatherSignals(
   const ws = ctx.workspaceId;
   const count = { head: true, count: 'exact' as const };
 
-  const [google, company, icp, offer, leads, kbTypes, target, workspace] = await Promise.all([
-    supabase
-      .from('integration_connections')
-      .select('id', count)
-      .eq('workspace_id', ws)
-      .eq('provider', 'google')
-      .eq('status', 'active'),
-    supabase.from('companies').select('id', count).eq('workspace_id', ws).is('deleted_at', null),
-    supabase
-      .from('icps')
-      .select('id', count)
-      .eq('workspace_id', ws)
-      .eq('active', true)
-      .is('deleted_at', null),
-    supabase
-      .from('offers')
-      .select('id', count)
-      .eq('workspace_id', ws)
-      .eq('status', 'active')
-      .is('deleted_at', null),
-    supabase.from('leads').select('id', count).eq('workspace_id', ws).is('deleted_at', null),
-    supabase
-      .from('knowledge_documents')
-      .select('doc_type')
-      .eq('workspace_id', ws)
-      .is('deleted_at', null)
-      .limit(50),
-    supabase
-      .from('workspace_targets')
-      .select('id', count)
-      .eq('workspace_id', ws)
-      .is('deleted_at', null),
-    supabase
-      .from('workspaces')
-      .select('onboarded_at, onboarding_dismissed_at')
-      .eq('id', ws)
-      .maybeSingle(),
-  ]);
+  const [google, company, icp, offer, leads, kbTypes, target, audit, workspace] = await Promise.all(
+    [
+      supabase
+        .from('integration_connections')
+        .select('id', count)
+        .eq('workspace_id', ws)
+        .eq('provider', 'google')
+        .eq('status', 'active'),
+      supabase.from('companies').select('id', count).eq('workspace_id', ws).is('deleted_at', null),
+      supabase
+        .from('icps')
+        .select('id', count)
+        .eq('workspace_id', ws)
+        .eq('active', true)
+        .is('deleted_at', null),
+      supabase
+        .from('offers')
+        .select('id', count)
+        .eq('workspace_id', ws)
+        .eq('status', 'active')
+        .is('deleted_at', null),
+      supabase.from('leads').select('id', count).eq('workspace_id', ws).is('deleted_at', null),
+      supabase
+        .from('knowledge_documents')
+        .select('doc_type')
+        .eq('workspace_id', ws)
+        .is('deleted_at', null)
+        .limit(50),
+      supabase
+        .from('workspace_targets')
+        .select('id', count)
+        .eq('workspace_id', ws)
+        .is('deleted_at', null),
+      supabase.from('audits').select('id', count).eq('workspace_id', ws),
+      supabase
+        .from('workspaces')
+        .select('onboarded_at, onboarding_dismissed_at')
+        .eq('id', ws)
+        .maybeSingle(),
+    ],
+  );
 
-  for (const r of [google, company, icp, offer, leads, kbTypes, target, workspace]) {
+  for (const r of [google, company, icp, offer, leads, kbTypes, target, audit, workspace]) {
     if (r.error) throw r.error;
   }
 
@@ -183,6 +187,7 @@ async function gatherSignals(
     knowledgeDocTypeCount: new Set(docTypes).size,
     leadCount: leads.count ?? 0,
     hasTarget: (target.count ?? 0) > 0,
+    hasAudit: (audit.count ?? 0) > 0,
   };
   const wsRow = workspace.data as {
     onboarded_at: string | null;

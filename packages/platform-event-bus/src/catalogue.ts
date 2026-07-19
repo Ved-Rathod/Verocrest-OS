@@ -34,6 +34,8 @@ export type EventPayloads = {
   'workspace.onboarded': { completed_steps: number };
   'target.set': { target_id: string; period: string };
   'target.indexed': { target_id: string; chunk_count: number };
+  'website.audit.completed': { audit_id: string; overall_grade: number; findings_count: number };
+  'website.audit.indexed': { audit_id: string; chunk_count: number };
 };
 
 export type EventName = keyof EventPayloads;
@@ -67,6 +69,8 @@ export const EVENT_VERSIONS = {
   'workspace.onboarded': 1,
   'target.set': 1,
   'target.indexed': 1,
+  'website.audit.completed': 1,
+  'website.audit.indexed': 1,
 } as const satisfies Record<EventName, number>;
 
 export const EVENT_SUBJECT_TYPE = {
@@ -98,6 +102,8 @@ export const EVENT_SUBJECT_TYPE = {
   'workspace.onboarded': 'workspace',
   'target.set': 'target',
   'target.indexed': 'target',
+  'website.audit.completed': 'audit',
+  'website.audit.indexed': 'audit',
 } as const satisfies Record<EventName, string>;
 
 export const EVENT_NAMES = Object.keys(EVENT_VERSIONS) as EventName[];

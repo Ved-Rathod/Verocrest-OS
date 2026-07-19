@@ -36,13 +36,14 @@ export const knowledgeIndexer = inngest.createFunction(
     }
 
     const supabase = createSupabaseServiceRoleClient();
-    const { data: row, error } = await supabase
+    let query = supabase
       .from(descriptor.table)
       .select(descriptor.selectColumns)
       .eq('id', subjectId)
-      .eq('workspace_id', workspaceId)
-      .is('deleted_at', null)
-      .maybeSingle();
+      .eq('workspace_id', workspaceId);
+    // Append-only tables (audits) have no deleted_at column (Sprint 4.8).
+    if (descriptor.softDelete !== false) query = query.is('deleted_at', null);
+    const { data: row, error } = await query.maybeSingle();
     if (error) throw error;
     if (!row) {
       logger.warn('entity not found for indexing', { table: descriptor.table, subjectId });

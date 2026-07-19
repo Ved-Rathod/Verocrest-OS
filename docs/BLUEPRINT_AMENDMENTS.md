@@ -312,4 +312,29 @@ already-frozen `integration.google.connected`:
 
 ---
 
-*Next amendment: 009.*
+## Amendment 009 — Website Intelligence: deterministic analyzer, additive audit columns, indexing events
+
+| | |
+|---|---|
+| **Status** | Approved |
+| **Date** | 2026-07-19 |
+| **Approved by** | Founder (Sprint 4.8 PHASE 2, decisions D1–D9) |
+| **Trigger** | Sprint 4.8 implements a **deterministic** Website Intelligence analyzer (D1) — a lightweight, keyless slice of the frozen Sprint 8 Website Auditor (Browserless + the `audit-website` AI capability + screenshots + Loom remain future). It reuses the frozen `audits` + `audit_findings` tables (D2), but AI-Memory indexing needs per-row state the frozen §6.1 shape lacks, and the indexing-complete event is new. |
+| **Documents changed** | `04` §6.1 (additive columns), `03` §8.3 catalogue (additive) |
+
+### Decision
+1. **Reuse `audits` + `audit_findings`** (docs/04 §6) — **no** new `website_analyses` table, **no** new finding categories (D2/D6, frozen `finding_category_enum`).
+2. **`audits` gains additive columns**: `signals jsonb` (the normalized 24-signal record incl. the AI-Memory `summary`), `content_hash`, `is_indexed`, `last_indexed_at`. Frozen columns/indexes unchanged. **No `deleted_at`** (D3): the indexer gained a per-descriptor `softDelete:false` flag so the append-only `audits` table skips the `deleted_at is null` filter.
+3. **Deterministic analysis, run synchronously** (D1/D4): a member Server Action fetches the URL (SSRF-guarded — D8: http(s)-only, DNS-to-public, redirect/timeout/size caps), runs 24 analyzers + a transparent grading rubric (D7), and persists audit + findings atomically via `record_audit_with_event`, emitting the frozen **`website.audit.completed`** (catalogue **sync**).
+4. **`website.audit.indexed`** (payload `{audit_id, chunk_count}`, subject_type `audit`) is a **new** event for indexing completion, symmetric to `icp.indexed` etc. Indexing uses a new embed-only capability **`embed-audit`** under the frozen **`audit`** memory scope (no new scope).
+5. **UI under Settings → Website Intelligence** (D5); the frozen top-level `/audits` nav item remains reserved for the full Sprint 8. Analyze / Refresh (new row) / View / History.
+6. **Onboarding**: the Website Audit step flips from `coming_soon` → **required + presence-detected** (`audits` exists). Required onboarding steps 7 → **8, closing the SPRINT 6 Definition of Done** (all 7 frozen items + the founder-added Company step now completable).
+
+### Impact
+- Event catalogue grows to **30** (`website.audit.completed` sync + `website.audit.indexed` new); schema version 1; no existing names change.
+- `audits`/`audit_findings` are additive-only; RLS is member select + member insert (append-only; the sync analyzer runs as the member).
+- Browserless, the `audit-website`/`generate-loom-script` AI capabilities, screenshots, scheduled re-audits, and `website.audit.requested`/`website.audit.delta` remain unbuilt — the full Sprint 8.
+
+---
+
+*Next amendment: 010.*

@@ -726,6 +726,13 @@ Shape is enforced by Zod at the API boundary.
 
 ### 6.1 `audits` (extended with `company_id`)
 
+> **AMENDED (Amendment 009)** — Sprint 4.8 adds additive columns `signals jsonb`
+> (normalized deterministic 24-signal record + AI-Memory `summary`), `content_hash`,
+> `is_indexed`, `last_indexed_at` so each audit is vectorized into AI Memory (scope
+> `audit`). Frozen columns/indexes unchanged; **no `deleted_at`** (audits are
+> append-only). v0.1 is a deterministic HTML/HTTP analyzer; Browserless + the
+> `audit-website` AI capability + screenshots + Loom remain the full Sprint 8.
+
 ```sql
 CREATE TYPE audit_status_enum AS ENUM ('pending', 'running', 'completed', 'failed');
 

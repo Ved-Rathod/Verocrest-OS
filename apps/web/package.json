@@ -18,6 +18,7 @@
     "@verocrest/domain-leads": "workspace:*",
     "@verocrest/domain-reminders": "workspace:*",
     "@verocrest/domain-revenue": "workspace:*",
+    "@verocrest/domain-website-intelligence": "workspace:*",
     "@verocrest/platform-ai-router": "workspace:*",
     "@verocrest/platform-event-bus": "workspace:*",
     "@verocrest/platform-integrations": "workspace:*",

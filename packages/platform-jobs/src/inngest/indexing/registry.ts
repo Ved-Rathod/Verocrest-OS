@@ -27,6 +27,12 @@ export type IndexDescriptor = {
     chunkCount: number,
   ) => Record<string, unknown>;
   /**
+   * Whether the source table has a `deleted_at` column (Sprint 4.8). Append-only
+   * tables (audits) set this false so the indexer skips the `deleted_at is null`
+   * filter. Defaults to true (icp/offer/kb/target are soft-deletable).
+   */
+  softDelete?: boolean;
+  /**
    * Optional post-index hook (Sprint 4.3): entities that maintain a chunk-tracking
    * table (KB docs → knowledge_document_chunks) use this to record + swap chunks.
    * ICP/Offer omit it → identical behavior to Sprints 4.1/4.2.
@@ -123,6 +129,25 @@ export const INDEX_DESCRIPTORS: Partial<Record<EventName, IndexDescriptor>> = {
         chunks,
       });
     },
+  },
+  // Website audits (Sprint 4.8 D3): the deterministic analysis summary indexed
+  // under the frozen 'audit' scope. Trigger is `website.audit.completed`. `audits`
+  // is append-only (no deleted_at → softDelete: false). The service pre-builds
+  // `signals.summary` (problems + technologies + opportunities) — that's embedded.
+  'website.audit.completed': {
+    table: 'audits',
+    selectColumns: 'id, url_normalized, signals, content_hash',
+    scope: 'audit',
+    embedCapability: 'embed-audit',
+    softDelete: false,
+    buildSourceText: (row) => {
+      const signals = (row['signals'] ?? {}) as Record<string, unknown>;
+      return typeof signals['summary'] === 'string' ? signals['summary'] : '';
+    },
+    metadataBase: (row) => ({ source: 'website_audit', url: row['url_normalized'] }),
+    setIndexedRpc: 'set_audit_indexed_with_event',
+    indexedEventName: 'website.audit.indexed',
+    buildIndexedPayload: (row, chunkCount) => ({ audit_id: row['id'], chunk_count: chunkCount }),
   },
   // Revenue targets (Sprint 4.7 D4): indexed under the existing 'workspace' scope —
   // no new scope. Trigger is the frozen `target.set` event; no afterIndex hook.

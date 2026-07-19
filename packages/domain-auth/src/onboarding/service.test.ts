@@ -10,6 +10,7 @@ const EMPTY: OnboardingSignals = {
   knowledgeDocTypeCount: 0,
   leadCount: 0,
   hasTarget: false,
+  hasAudit: false,
 };
 
 const ALL: OnboardingSignals = {
@@ -21,18 +22,28 @@ const ALL: OnboardingSignals = {
   knowledgeDocTypeCount: 2,
   leadCount: 5,
   hasTarget: true,
+  hasAudit: true,
 };
 
 const state = { dismissed: false, onboardedAt: null };
 
 describe('buildOnboardingProgress (docs/05 §3, Amendment 007)', () => {
-  it('has 7 required steps and 1 non-blocking coming-soon step (Sprint 4.7)', () => {
+  it('has 8 required steps and 0 coming-soon (Sprint 4.8 closes SPRINT 6)', () => {
     const p = buildOnboardingProgress(EMPTY, state);
-    expect(p.requiredTotal).toBe(7);
+    expect(p.requiredTotal).toBe(8);
     expect(p.items).toHaveLength(8);
-    const comingSoon = p.items.filter((i) => i.status === 'coming_soon');
-    expect(comingSoon.map((i) => i.key)).toEqual(['website_audit']);
-    expect(comingSoon.every((i) => !i.required)).toBe(true);
+    expect(p.items.filter((i) => i.status === 'coming_soon')).toHaveLength(0);
+    expect(p.items.every((i) => i.required)).toBe(true);
+  });
+
+  it('Website Audit is now a required, detectable step (Sprint 4.8)', () => {
+    const wa = buildOnboardingProgress(EMPTY, state).items.find((i) => i.key === 'website_audit');
+    expect(wa?.required).toBe(true);
+    expect(wa?.status).toBe('not_started');
+    expect(wa?.href).toBe('/settings/website');
+    expect(
+      buildOnboardingProgress(ALL, state).items.find((i) => i.key === 'website_audit')?.status,
+    ).toBe('done');
   });
 
   it('Revenue Target is now a required, detectable step (Sprint 4.7)', () => {
@@ -57,9 +68,9 @@ describe('buildOnboardingProgress (docs/05 §3, Amendment 007)', () => {
     expect(p.complete).toBe(false);
   });
 
-  it('completes when all seven required steps are done — coming-soon does NOT block', () => {
+  it('completes when all eight required steps are done', () => {
     const p = buildOnboardingProgress(ALL, state);
-    expect(p.requiredDone).toBe(7);
+    expect(p.requiredDone).toBe(8);
     expect(p.complete).toBe(true);
   });
 

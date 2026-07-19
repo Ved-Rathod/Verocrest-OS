@@ -71,6 +71,22 @@ export const CAPABILITY_CONFIGS: Partial<Record<Capability, CapabilityConfig>> =
     timeoutMs: 60_000,
     hardMaxUsd: 0.05,
   },
+  // Website-audit embedder (docs/09 §5.5, docs/04 §6) — the deterministic analysis
+  // summary indexed under the frozen 'audit' memory scope. Landed Sprint 4.8.
+  'embed-audit': {
+    capability: 'embed-audit',
+    module: 'website_intelligence',
+    primary: 'openai',
+    fallback: null,
+    models: {
+      openai: 'text-embedding-3-small',
+      mock: 'mock-embedding',
+    },
+    streamingDefault: false,
+    maxOutputTokens: 0,
+    timeoutMs: 60_000, // an audit summary can be several chunks
+    hardMaxUsd: 0.05,
+  },
   // Revenue-target embedder (docs/09 §5.5, docs/04 §13.2) — a single short fact per
   // target, indexed under scope 'workspace' so AI can answer "what's our monthly
   // target?". Landed Sprint 4.7.
