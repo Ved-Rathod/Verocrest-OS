@@ -18,6 +18,7 @@
     "@verocrest/domain-leads": "workspace:*",
     "@verocrest/domain-personalization": "workspace:*",
     "@verocrest/domain-scoring": "workspace:*",
+    "@verocrest/domain-outreach-queue": "workspace:*",
     "@verocrest/domain-reminders": "workspace:*",
     "@verocrest/domain-revenue": "workspace:*",
     "@verocrest/domain-website-intelligence": "workspace:*",

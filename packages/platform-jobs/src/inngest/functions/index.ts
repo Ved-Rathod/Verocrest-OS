@@ -3,6 +3,7 @@ import { journalLoggingSubscriber } from './logging-subscriber';
 import { knowledgeIndexer } from './knowledge-indexer';
 import { memoryWriter } from './memory-writer';
 import { eventMetricsSubscriber } from './metrics-subscriber';
+import { outreachQueueRecompute } from './outreach-queue-recompute';
 import { reconcileJournal } from './reconcile-journal';
 
 /** Every Inngest function served at /api/inngest (apps/web). */
@@ -13,4 +14,5 @@ export const functions = [
   costAggregator,
   memoryWriter,
   knowledgeIndexer,
+  outreachQueueRecompute,
 ];

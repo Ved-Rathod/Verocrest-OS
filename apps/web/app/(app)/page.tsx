@@ -11,8 +11,10 @@ import { Card, CardBody, CardHeader, CardTitle } from '@verocrest/ui-kit';
 import { requireWorkspaceContext } from '@verocrest/platform-tenancy/server';
 import { getOnboardingProgress } from '@verocrest/domain-auth/server';
 import { getCurrentTargets } from '@verocrest/domain-revenue/server';
+import { listQueue } from '@verocrest/domain-outreach-queue/server';
 import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist';
 import { RevenueTargetWidget } from '@/components/revenue/revenue-target-widget';
+import { QueueWidget } from '@/components/queue/queue-widget';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +88,7 @@ export default async function DashboardPage() {
 
   // Only fetched once the dashboard actually renders (skipped during onboarding).
   const currentTargets = await getCurrentTargets(ctx);
+  const goldLeads = await listQueue(ctx, 5);
 
   return (
     <div className="mx-auto w-full max-w-[1600px] p-4 lg:p-6">
@@ -104,6 +107,8 @@ export default async function DashboardPage() {
         {widgets.map((w) =>
           w.title === 'Revenue Target' ? (
             <RevenueTargetWidget key={w.title} targets={currentTargets} />
+          ) : w.title === "Today's Gold Leads" ? (
+            <QueueWidget key={w.title} items={goldLeads} />
           ) : (
             <DashboardWidget key={w.title} spec={w} />
           ),

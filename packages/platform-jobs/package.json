@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@verocrest/domain-outreach-queue": "workspace:*",
     "@verocrest/platform-ai-router": "workspace:*",
     "@verocrest/platform-event-bus": "workspace:*",
     "@verocrest/platform-integrations": "workspace:*",

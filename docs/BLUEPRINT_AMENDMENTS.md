@@ -387,4 +387,31 @@ already-frozen `integration.google.connected`:
 
 ---
 
-*Next amendment: 012.*
+## Amendment 012 — Outreach Queue: nullable `opportunity_score`, derived effective priority (no stored priority column)
+
+| | |
+|---|---|
+| **Status** | Approved |
+| **Date** | 2026-07-28 |
+| **Approved by** | Founder (Sprint 5.0, D1/D3–D10; D2 modified) |
+| **Trigger** | Sprint 5.0 (Outreach Queue) implements a slice of the frozen Sprint 7 LIE. The frozen `outreach_queue_items.opportunity_score` is `NOT NULL` and ranks the queue, but `lead_scores.opportunity_score` is NULL until Relationship Intelligence ships (Amendment 011). Sourcing the frozen NOT-NULL column is impossible without fabricating a value. Work stopped per protocol; founder resolved. |
+| **Documents changed** | `04` §8.1 (nullable `opportunity_score` + ranking/explainability note), `03` §8.3 catalogue (sync) |
+| **Documents evaluated and NOT changed** | 01–02, 05–12; the frozen queue schema, `next_best_action_enum`, and indexes are otherwise unchanged |
+
+### Decision
+1. **`outreach_queue_items.opportunity_score` becomes NULLABLE** (modified D2). It stores the GENUINE opportunity score (NULL until readiness exists) — never fabricated.
+2. **No `priority_score` column** (founder rejected the original D2). `priority_rank` is recomputed by the LIE from a transient `effective_priority = coalesce(opportunity_score, fit_score)` (read from `lead_scores`), used ONLY to order the rank. The effective value is never persisted.
+3. **Persist only queue-specific state:** `priority_rank`, `reasoning`, `next_best_action`, `recommended_offer_id`, `channel_preference`, `cooldown_until`, `expires_at`, plus the genuine (nullable) `opportunity_score` snapshot. User follow-up state is not stored on the queue.
+4. **Queue Explainability (D10):** `reasoning` jsonb must carry a human-readable explanation of (a) why the item holds its rank (priority basis opportunity vs fit-fallback, the value used, the rank) and (b) why the `next_best_action` + `recommended_offer` were chosen.
+5. **Snooze/Complete via reminders (D3):** realized through the frozen `reminders` table (`domain-reminders`) + a service-role `cooldown_until` on the queue item; no mutable status columns are added to the write-locked materialized projection.
+6. **Scope (Sprint 5.0 slice, D1/D9):** materialized single-NBA queue + `recommend-offer` + reminders-based cadence + dashboard widget. Multi-step sequencing (Phase 2), Relationship Intelligence, and the `outreach.sent`/reply triggers remain their frozen S7/S9/Phase-2 items.
+
+### Impact
+- `outreach_queue_items` is a first migration (no existing rows); the NOT-NULL relaxation cannot break data. `idx_..._ws_score` (opportunity DESC) remains valid (nulls sort last).
+- LIE write-lock realized: members SELECT; the recompute writes via the service-role path (no INSERT/UPDATE/DELETE policy).
+- Event catalogue grows by one (`outreach.queue.updated`, frozen in `03` §8.3 `{added, removed, reordered}`); schema version 1; no existing names change.
+- New AI capability `recommend-offer` is additive to the frozen `Capability` union (already declared); Anthropic primary, OpenAI deferred (RN-001), keyless Mock.
+
+---
+
+*Next amendment: 013.*

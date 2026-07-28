@@ -4,6 +4,7 @@ import {
   type EventName,
   type EventPublisher,
 } from '@verocrest/platform-event-bus';
+import { recomputeQueueForLead } from '@verocrest/domain-outreach-queue/server';
 import { inngest } from './client';
 import { INDEX_DESCRIPTORS } from './indexing/registry';
 import { indexEventNow } from './indexing/run';
@@ -47,12 +48,35 @@ async function indexInlineIfConfigured(envelope: EventEnvelope): Promise<void> {
   await indexEventNow(envelope);
 }
 
+/**
+ * Sprint 5.0 — recompute the Outreach Queue when a lead is (re)scored (docs/03 §8,
+ * D6). Best-effort inline consumer, independent of indexing and the Inngest send:
+ * a queue failure must not fail the user's request (manual "Recalculate" + the
+ * async Inngest consumer are the safety net). Runs under the service role.
+ */
+async function recomputeQueueInline(envelope: EventEnvelope): Promise<void> {
+  if (envelope.name !== 'lead.scored') return;
+  const leadId = envelope.subject.id;
+  if (!leadId) return;
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn(`[QUEUE ${leadId}] recompute SKIPPED — SUPABASE_SERVICE_ROLE_KEY not set`);
+    return;
+  }
+  try {
+    await recomputeQueueForLead({ workspaceId: envelope.workspaceId, leadId });
+  } catch (err) {
+    console.error(`[QUEUE] recompute failed for lead ${leadId}; recalculate to retry`, err);
+  }
+}
+
 export const inngestPublisher: EventPublisher = {
   async publish(envelope: EventEnvelope): Promise<void> {
     // Step 2 — publish to the bus (best-effort). Runs first but cannot skip step 3.
     await sendToInngest(envelope);
     // Step 3+ — inline indexing, independent of the Inngest send outcome.
     await indexInlineIfConfigured(envelope);
+    // Step 4 — Outreach Queue refresh on lead.scored, independent of the above.
+    await recomputeQueueInline(envelope);
   },
 };
 

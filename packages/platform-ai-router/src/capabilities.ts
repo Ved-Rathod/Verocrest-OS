@@ -1,6 +1,7 @@
 import type { Capability, CapabilityConfig } from './types';
 import { personalizationOutputSchema } from './schemas/personalization';
 import { scoreLeadOutputSchema } from './schemas/scoring';
+import { recommendOfferOutputSchema } from './schemas/recommend-offer';
 
 /**
  * Capability catalogue — code baseline config (docs/09 §2.3 step 1, §11).
@@ -65,6 +66,27 @@ export const CAPABILITY_CONFIGS: Partial<Record<Capability, CapabilityConfig>> =
     temperature: 0.2,
     timeoutMs: 30_000,
     outputSchema: scoreLeadOutputSchema,
+    hardMaxUsd: 0.02, // est. band $0.002–$0.008 (docs/09 §11) with headroom
+  },
+  // Recommended-offer for the Outreach Queue (Sprint 5.0, docs/09 §4.3 + §11,
+  // Amendment 012). Structured: picks which offer to lead with + rationale +
+  // confidence, grounded in the frozen scopes (icp/offer/company/audit/knowledge_doc,
+  // topK 8, min-sim 0.60). Anthropic primary; OpenAI primary deferred (RN-001).
+  // Mock returns a deterministic conformant object so it runs keyless.
+  'recommend-offer': {
+    capability: 'recommend-offer',
+    module: 'scoring', // Module 5 via LIE (docs/09 §11)
+    primary: 'anthropic',
+    fallback: null,
+    models: {
+      anthropic: 'claude-sonnet-5',
+      mock: 'mock-model',
+    },
+    streamingDefault: false, // docs/09 §11: recommend-offer streams off
+    maxOutputTokens: 512,
+    temperature: 0.2,
+    timeoutMs: 30_000,
+    outputSchema: recommendOfferOutputSchema,
     hardMaxUsd: 0.02, // est. band $0.002–$0.008 (docs/09 §11) with headroom
   },
   // Embed-only capability (docs/09 §5.5): the generic memory writer. Shares the

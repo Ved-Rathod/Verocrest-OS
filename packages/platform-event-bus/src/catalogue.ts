@@ -52,6 +52,15 @@ export type EventPayloads = {
     score_version: number;
     model: string;
   };
+  // Outreach Queue (Sprint 5.0, Amendment 012) — the materialized LIE projection
+  // was recomputed (docs/03 §8.3 ledger `{added, removed, reordered}`). `lead_id`
+  // is the item that triggered the recompute (subject).
+  'outreach.queue.updated': {
+    lead_id: string;
+    added: number;
+    removed: number;
+    reordered: number;
+  };
 };
 
 export type EventName = keyof EventPayloads;
@@ -89,6 +98,7 @@ export const EVENT_VERSIONS = {
   'website.audit.indexed': 1,
   'outreach.draft.generated': 1,
   'lead.scored': 1,
+  'outreach.queue.updated': 1,
 } as const satisfies Record<EventName, number>;
 
 export const EVENT_SUBJECT_TYPE = {
@@ -124,6 +134,7 @@ export const EVENT_SUBJECT_TYPE = {
   'website.audit.indexed': 'audit',
   'outreach.draft.generated': 'outreach_message',
   'lead.scored': 'lead',
+  'outreach.queue.updated': 'lead',
 } as const satisfies Record<EventName, string>;
 
 export const EVENT_NAMES = Object.keys(EVENT_VERSIONS) as EventName[];

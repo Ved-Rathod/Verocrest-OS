@@ -28,6 +28,14 @@ const MOCK_STRUCTURED: Record<string, unknown> = {
     cta_suggestion: 'Open to a 15-minute walkthrough next week?',
     confidence: 72,
   },
+  // Sprint 5.0 — recommend-offer (Outreach Queue). Mirrors MOCK_RECOMMEND_OFFER in
+  // the router's schemas/recommend-offer.ts (a router test asserts conformance).
+  'recommend-offer': {
+    offer_ref: 1,
+    rationale:
+      'This offer targets the same industry as the lead and directly addresses the conversion gap surfaced by the website analysis.',
+    confidence: 64,
+  },
   // Sprint 4.9 — score-lead explainability (numbers come from the deterministic
   // engine; this is the narrative layer). Mirrors MOCK_SCORE_LEAD in the router's
   // schemas/scoring.ts (a router test asserts schema conformance).

@@ -7,7 +7,7 @@
 **Amendments:** 001 (2026-07-03, leads columns + contact-required affirmation) — see `BLUEPRINT_AMENDMENTS.md`
 **Owner:** Founder / CTO / Database Architect
 **Depends on:** `01_Vision.md`, `02_Product_Requirements.md`, `03_System_Architecture.md`
-**Last updated:** 2026-07-28 (Amendment 011)
+**Last updated:** 2026-07-28 (Amendment 012)
 
 ---
 
@@ -1050,7 +1050,13 @@ CREATE TABLE outreach_queue_items (
   contact_id            uuid NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
   company_id            uuid REFERENCES companies(id) ON DELETE SET NULL,     -- rev 2
   recommended_offer_id  uuid REFERENCES offers(id),                            -- rev 2: AI-suggested offer
-  opportunity_score     smallint NOT NULL,
+  -- AMENDED (Amendment 012, 2026-07-28): NULLABLE. Holds the GENUINE opportunity
+  -- score, which is NULL until Relationship Intelligence supplies readiness
+  -- (Amendment 011). The queue is ranked by an effective priority derived at
+  -- recompute time — `effective_priority = opportunity_score ?? fit_score` (read
+  -- from lead_scores) — used ONLY to compute priority_rank; it is never persisted
+  -- as its own column (no fabricated priority number). See BLUEPRINT_AMENDMENTS.md.
+  opportunity_score     smallint,
   next_best_action      next_best_action_enum NOT NULL,
   reasoning             jsonb NOT NULL DEFAULT '{}'::jsonb,
   channel_preference    text,
@@ -1073,6 +1079,18 @@ CREATE INDEX idx_outreach_queue_items_ws_offer
   ON outreach_queue_items (workspace_id, recommended_offer_id)
   WHERE recommended_offer_id IS NOT NULL;
 ```
+
+**AMENDED (Amendment 012) — ranking + explainability.** `priority_rank` is recomputed
+by the LIE over `effective_priority = coalesce(opportunity_score, fit_score)` (joining
+`lead_scores`); the effective value is transient and never stored as a column. The
+`reasoning` jsonb is the queue's **explainability** record (D10): it carries a
+human-readable account of *why the item is ranked where it is* (the priority basis —
+`opportunity` vs `fit` fallback — the value used, and the rank) and *why the
+next_best_action + recommended_offer were chosen*. User follow-up state (snooze /
+complete / due date) is **not** stored here — it lives in `reminders` (§—, docs/05
+§8–9); a snooze/complete only sets the service-role `cooldown_until` so the item drops
+out of the active queue until it elapses. The table stays a write-locked materialized
+projection (`03` §6.5): members SELECT only.
 
 ---
 
