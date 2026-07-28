@@ -12,7 +12,28 @@ function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil(text.length / 4));
 }
 
+/**
+ * Deterministic structured outputs per capability (D4) so structured capabilities
+ * run keyless. A router test asserts these conform to the capability's schema.
+ */
+const MOCK_STRUCTURED: Record<string, unknown> = {
+  'generate-personalization': {
+    opening_line: 'Noticed your team is scaling client acquisition — quick thought.',
+    compliment: 'Your positioning around measurable ROI stands out in a noisy space.',
+    website_observation:
+      'Your homepage has a clear offer but no visible booking CTA above the fold.',
+    pain_hypothesis: 'You may be losing warm visitors who have no fast path to book a call.',
+    value_proposition:
+      'We add a friction-free booking path so more of your existing traffic converts.',
+    cta_suggestion: 'Open to a 15-minute walkthrough next week?',
+    confidence: 72,
+  },
+};
+
 function mockResponseFor(params: LlmCallParams): string {
+  if (params.capability && MOCK_STRUCTURED[params.capability]) {
+    return JSON.stringify(MOCK_STRUCTURED[params.capability]);
+  }
   const lastUser = [...params.messages].reverse().find((m) => m.role === 'user');
   const source = lastUser?.content ?? '';
   const firstLine =

@@ -1065,6 +1065,12 @@ CREATE INDEX idx_outreach_queue_items_ws_offer
 
 ### 9.1 `outreach_messages`
 
+> **AMENDED (Amendment 010)** — Milestone M4 reuses this table as the personalization/draft
+> artifact and adds one additive `personalization jsonb` column holding the structured
+> components (opening line, compliment, website observation, pain hypothesis, value
+> proposition, CTA suggestion, confidence). Frozen columns are unchanged. Sending/replies/
+> sequences remain future milestones.
+
 ```sql
 CREATE TYPE outreach_channel_enum AS ENUM ('email', 'ig_dm', 'linkedin_dm', 'sms', 'call');
 CREATE TYPE outreach_direction_enum AS ENUM ('outbound', 'inbound');

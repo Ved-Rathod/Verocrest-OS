@@ -18,6 +18,12 @@ export type LlmCallParams = {
   maxOutputTokens: number;
   temperature?: number;
   abortSignal?: AbortSignal;
+  /**
+   * The capability being executed. Real adapters ignore it; the Mock provider
+   * uses it to emit deterministic structured output for structured capabilities
+   * so they run keyless (docs/09 testing checklist).
+   */
+  capability?: string;
 };
 
 export type LlmUsage = {

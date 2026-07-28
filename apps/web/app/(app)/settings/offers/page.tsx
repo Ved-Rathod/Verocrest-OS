@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { requireWorkspaceContext } from '@verocrest/platform-tenancy/server';
 import { listOffers } from '@verocrest/domain-knowledge/server';
 import { Badge, Button } from '@verocrest/ui-kit';
+import { SettingsTabs } from '@/components/settings/settings-tabs';
 
 export const metadata: Metadata = { title: 'Offers' };
 export const dynamic = 'force-dynamic';
@@ -20,6 +21,7 @@ export default async function OffersPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl p-4 lg:p-6">
+      <SettingsTabs />
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-fg-strong">Offer Library</h1>

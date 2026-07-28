@@ -17,6 +17,13 @@ export type MemoryPolicy = {
 export const MEMORY_POLICY: Partial<Record<Capability, MemoryPolicy>> = {
   // Input is self-contained; retrieves nothing (docs/09 §4.3).
   'summarize-thread': { scopes: [], topK: 0, minSimilarity: 0 },
+  // Personalization grounds on the full knowledge substrate (docs/09 §4.3 draft-
+  // outreach-email scope set). Milestone M4.
+  'generate-personalization': {
+    scopes: ['contact', 'company', 'audit', 'icp', 'offer', 'knowledge_doc', 'workspace'],
+    topK: 8,
+    minSimilarity: 0.3,
+  },
   // Embed-only capabilities: writers, never readers (docs/09 §4.3, §5.5).
   'embed-memory-generic': { scopes: [], topK: 0, minSimilarity: 0 },
   'embed-icp': { scopes: [], topK: 0, minSimilarity: 0 },

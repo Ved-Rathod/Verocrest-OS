@@ -1,4 +1,5 @@
 import type { Capability, CapabilityConfig } from './types';
+import { personalizationOutputSchema } from './schemas/personalization';
 
 /**
  * Capability catalogue — code baseline config (docs/09 §2.3 step 1, §11).
@@ -22,6 +23,26 @@ export const CAPABILITY_CONFIGS: Partial<Record<Capability, CapabilityConfig>> =
     temperature: 0.3,
     timeoutMs: 30_000, // draft-single class (docs/09 §11.1)
     hardMaxUsd: 0.05, // est. band $0.003–$0.01 (docs/09 §11) with headroom
+  },
+  // Structured personalization (Milestone M4, docs/09 §11) — grounded in the
+  // knowledge substrate + AI Memory, returns the 7 personalization components +
+  // confidence. Anthropic primary; OpenAI fallback deferred (RN-001). Mock provider
+  // returns a deterministic object so it runs keyless (D4).
+  'generate-personalization': {
+    capability: 'generate-personalization',
+    module: 'personalization',
+    primary: 'anthropic',
+    fallback: null,
+    models: {
+      anthropic: 'claude-sonnet-5',
+      mock: 'mock-model',
+    },
+    streamingDefault: false,
+    maxOutputTokens: 1024,
+    temperature: 0.4,
+    timeoutMs: 30_000,
+    outputSchema: personalizationOutputSchema,
+    hardMaxUsd: 0.05,
   },
   // Embed-only capability (docs/09 §5.5): the generic memory writer. Shares the
   // Router's cost + logging + budget path minus generation. Landed Sprint 3.4.

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { requireWorkspaceContext } from '@verocrest/platform-tenancy/server';
 import { listIcps } from '@verocrest/domain-knowledge/server';
 import { Badge, Button } from '@verocrest/ui-kit';
+import { SettingsTabs } from '@/components/settings/settings-tabs';
 
 export const metadata: Metadata = { title: 'ICPs' };
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,7 @@ export default async function IcpsPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl p-4 lg:p-6">
+      <SettingsTabs />
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-fg-strong">Ideal Customer Profiles</h1>

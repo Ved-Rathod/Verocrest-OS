@@ -337,4 +337,28 @@ already-frozen `integration.google.connected`:
 
 ---
 
-*Next amendment: 010.*
+## Amendment 010 — AI Personalization: structured capability + `outreach_messages` reuse
+
+| | |
+|---|---|
+| **Status** | Approved |
+| **Date** | 2026-07-20 |
+| **Approved by** | Founder (Milestone M4, decisions D1–D9) |
+| **Trigger** | M4 generates STRUCTURED personalization (opening line, compliment, website observation, pain hypothesis, value proposition, CTA, confidence). The frozen `draft-outreach-*` capabilities produce freeform message bodies, and no structured personalization capability or storage column exists. |
+| **Documents changed** | `04` §9.1 (additive column), `09` §11 (new capability), `03` §8.3 catalogue (sync) |
+
+### Decision
+1. **New capability `generate-personalization`** (structured output, docs/09 §2.7) — Anthropic primary, OpenAI fallback deferred (RN-001), Mock provider returns a deterministic conformant object so it runs keyless (D4). Memory scopes = the frozen `draft-outreach-email` set (`contact, company, audit, icp, offer, knowledge_doc, workspace`). The frozen `draft-outreach-*` capabilities remain for the later Outreach milestone (D1).
+2. **Reuse the frozen `outreach_messages` table** (`04` §9.1) as the personalization/draft artifact + **one additive `personalization jsonb` column** for the structured components (D2). No parallel "personalizations" entity. `body` = a deterministic preview; `channel='email'`, `direction='outbound'`, `status='draft'`; `citations` records the grounding sources.
+3. **`outreach.draft.generated`** (`{channel, draft_id, model, citations}`, subject_type `outreach_message`) added to the catalogue as a **sync** of the frozen `03` §8.3 ledger entry.
+4. **Grounding** consumes Company, Contact, Website Intelligence, ICP, Offer, KB, and AI Memory — **independent of Lead Scoring / the Outreach Queue** (D5). Memory is consumed for grounding; generated output is **not** re-indexed (D7 — citations only).
+5. **Out of scope** (future milestones, D6): sending, Gmail, reply classification, ig/linkedin variants, sequences, the queue.
+
+### Impact
+- Event catalogue grows to **31** (`outreach.draft.generated` sync); schema version 1; no existing names change.
+- `outreach_messages` is additive-only (one jsonb column); RLS is member select/insert (workspace isolation via `is_workspace_member`).
+- New capability is additive to the frozen `Capability` union (already declared) — no existing capability changes. The `LlmCallParams.capability` field is informational (real adapters ignore it; the Mock uses it for keyless structured output).
+
+---
+
+*Next amendment: 011.*

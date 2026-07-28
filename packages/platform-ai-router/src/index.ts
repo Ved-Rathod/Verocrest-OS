@@ -24,6 +24,7 @@ export {
   type ModelPricing,
 } from './pricing';
 export { CAPABILITY_CONFIGS, getCapabilityConfig } from './capabilities';
+export { personalizationOutputSchema, type PersonalizationOutput } from './schemas/personalization';
 export { BASELINE_PROMPTS, getBaselinePrompt, type PromptDefinition } from './prompts/baselines';
 export {
   clearPromptCacheForTests,

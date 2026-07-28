@@ -36,6 +36,12 @@ export type EventPayloads = {
   'target.indexed': { target_id: string; chunk_count: number };
   'website.audit.completed': { audit_id: string; overall_grade: number; findings_count: number };
   'website.audit.indexed': { audit_id: string; chunk_count: number };
+  'outreach.draft.generated': {
+    channel: string;
+    draft_id: string;
+    model: string;
+    citations: Record<string, unknown>;
+  };
 };
 
 export type EventName = keyof EventPayloads;
@@ -71,6 +77,7 @@ export const EVENT_VERSIONS = {
   'target.indexed': 1,
   'website.audit.completed': 1,
   'website.audit.indexed': 1,
+  'outreach.draft.generated': 1,
 } as const satisfies Record<EventName, number>;
 
 export const EVENT_SUBJECT_TYPE = {
@@ -104,6 +111,7 @@ export const EVENT_SUBJECT_TYPE = {
   'target.indexed': 'target',
   'website.audit.completed': 'audit',
   'website.audit.indexed': 'audit',
+  'outreach.draft.generated': 'outreach_message',
 } as const satisfies Record<EventName, string>;
 
 export const EVENT_NAMES = Object.keys(EVENT_VERSIONS) as EventName[];

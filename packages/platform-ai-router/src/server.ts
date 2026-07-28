@@ -175,6 +175,10 @@ export async function indexEntityIntoMemory(params: {
         texts: chunks.map((c) => c.content),
       },
     );
+    console.info(
+      `[INDEX ${params.scope} ${params.subjectId}] 5. Embedding generation: PASS (${embedded.vectors.length} vectors)`,
+    );
+    let writtenCount = 0;
     for (let i = 0; i < chunks.length; i++) {
       const embedding = embedded.vectors[i];
       if (!embedding) continue;
@@ -191,6 +195,7 @@ export async function indexEntityIntoMemory(params: {
           source_content_hash: params.sourceContentHash,
         },
       });
+      writtenCount += 1;
       indexed.push({
         chunkIndex: chunks[i]!.chunkIndex,
         charStart: chunks[i]!.charStart,
@@ -200,6 +205,9 @@ export async function indexEntityIntoMemory(params: {
         memoryVectorId: written.memoryId,
       });
     }
+    console.info(
+      `[INDEX ${params.scope} ${params.subjectId}] 6. writeMemory(): PASS (${writtenCount} vector(s) written to memory_vectors)`,
+    );
   }
 
   // Two-phase swap (memory side): new chunks are durable above; remove any

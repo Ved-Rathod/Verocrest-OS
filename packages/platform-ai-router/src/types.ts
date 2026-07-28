@@ -26,6 +26,7 @@ export type Capability =
   | 'draft-outreach-email'
   | 'draft-outreach-ig-dm'
   | 'draft-outreach-linkedin-dm'
+  | 'generate-personalization'
   | 'classify-reply'
   | 'summarize-thread'
   // Sales CRM (Module 5)

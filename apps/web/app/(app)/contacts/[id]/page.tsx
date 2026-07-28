@@ -4,9 +4,12 @@ import { notFound } from 'next/navigation';
 import { Building2Icon, ExternalLinkIcon, MailIcon, PencilIcon, PhoneIcon } from 'lucide-react';
 import { getContactDetailPage, getCustomFieldDefinitions } from '@verocrest/domain-contacts/server';
 import { SENIORITY_LABELS, displayName } from '@verocrest/domain-contacts';
+import { requireWorkspaceContext } from '@verocrest/platform-tenancy/server';
+import { listPersonalizations } from '@verocrest/domain-personalization/server';
 import { Badge, Button, Card, CardBody } from '@verocrest/ui-kit';
 import { ContactActions } from '@/components/contacts/contact-actions';
 import { CustomFieldsDisplay } from '@/components/custom-fields/custom-fields-display';
+import { PersonalizationPanel } from '@/components/personalization/personalization-panel';
 
 export const metadata: Metadata = { title: 'Contact' };
 export const dynamic = 'force-dynamic';
@@ -17,6 +20,8 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
   // getContactDetailPage normalizes failures (→ error.tsx); null = not-found.
   const contact = await getContactDetailPage(id);
   if (!contact) notFound();
+  const ctx = await requireWorkspaceContext();
+  const personalizations = await listPersonalizations(ctx, id);
   const definitions = await getCustomFieldDefinitions('contact');
   const hasCustomFields = definitions.some(
     (d) =>
@@ -134,6 +139,9 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
               </CardBody>
             </Card>
           ) : null}
+
+          {/* AI Personalization (Milestone M4) — reusable panel (D8). */}
+          <PersonalizationPanel contactId={contact.id} initial={personalizations} />
         </div>
 
         {/* Company panel (relationship display, docs/06 §3) */}

@@ -40,11 +40,11 @@ export const primaryNav: NavItem[] = [
   { label: 'Companies', icon: Building2Icon, href: '/companies' },
   { label: 'Reminders', icon: AlarmClockIcon, href: '/reminders' },
   { label: 'Pipeline', icon: SquareKanbanIcon, landsIn: 'Sprint 10' },
-  { label: 'Audits', icon: SearchCheckIcon, landsIn: 'Sprint 8' },
+  { label: 'Audits', icon: SearchCheckIcon, href: '/settings/website' },
   { label: 'Outreach', icon: SendIcon, landsIn: 'Sprint 9' },
   { label: 'Meetings', icon: CalendarIcon, landsIn: 'Sprint 10' },
   { label: 'KB', icon: BookOpenIcon, href: '/kb' },
-  { label: 'Offers', icon: PackageIcon, landsIn: 'Sprint 6' },
+  { label: 'Offers', icon: PackageIcon, href: '/settings/offers' },
   { label: 'Settings', icon: SettingsIcon, href: '/settings/workspace' },
 ];
 

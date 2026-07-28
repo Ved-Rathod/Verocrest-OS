@@ -10,10 +10,12 @@ import { usePathname } from 'next/navigation';
  */
 const TABS = [
   { label: 'Workspace', href: '/settings/workspace' },
-  { label: 'AI Usage', href: '/settings/ai/usage' },
-  { label: 'Prompt Library', href: '/settings/ai/prompts' },
+  { label: 'ICPs', href: '/settings/icps' },
+  { label: 'Offers', href: '/settings/offers' },
   { label: 'Revenue Targets', href: '/settings/revenue' },
   { label: 'Website Intelligence', href: '/settings/website' },
+  { label: 'AI Usage', href: '/settings/ai/usage' },
+  { label: 'Prompt Library', href: '/settings/ai/prompts' },
   { label: 'Integrations', href: '/settings/integrations' },
 ] as const;
 
@@ -23,7 +25,7 @@ export function SettingsTabs() {
   return (
     <nav className="mb-4 flex gap-1 border-b border-edge-subtle" aria-label="Settings sections">
       {TABS.map((tab) => {
-        const active = pathname === tab.href;
+        const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
         return (
           <Link
             key={tab.href}

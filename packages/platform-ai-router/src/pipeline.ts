@@ -244,6 +244,7 @@ async function executeAwaited(
           ? { temperature: prepared.config.temperature }
           : {}),
         abortSignal: timeoutSignal(prepared.config.timeoutMs),
+        capability: prepared.config.capability,
       });
       return { completion, used: selected };
     } catch (err) {

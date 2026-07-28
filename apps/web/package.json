@@ -16,6 +16,7 @@
     "@verocrest/domain-integrations": "workspace:*",
     "@verocrest/domain-knowledge": "workspace:*",
     "@verocrest/domain-leads": "workspace:*",
+    "@verocrest/domain-personalization": "workspace:*",
     "@verocrest/domain-reminders": "workspace:*",
     "@verocrest/domain-revenue": "workspace:*",
     "@verocrest/domain-website-intelligence": "workspace:*",
