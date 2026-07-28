@@ -7,7 +7,7 @@
 **Amendments:** 001 (2026-07-03, leads columns + contact-required affirmation) — see `BLUEPRINT_AMENDMENTS.md`
 **Owner:** Founder / CTO / Database Architect
 **Depends on:** `01_Vision.md`, `02_Product_Requirements.md`, `03_System_Architecture.md`
-**Last updated:** 2026-07-03 (Amendment 001)
+**Last updated:** 2026-07-28 (Amendment 011)
 
 ---
 
@@ -542,13 +542,23 @@ CREATE TABLE lead_scores (
   workspace_id       uuid NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
   lead_id            uuid NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
   fit_score          smallint NOT NULL CHECK (fit_score BETWEEN 0 AND 100),
-  readiness_score    smallint NOT NULL CHECK (readiness_score BETWEEN 0 AND 100),
-  opportunity_score  smallint NOT NULL CHECK (opportunity_score BETWEEN 0 AND 100),
+  -- AMENDED (Amendment 011, 2026-07-28): readiness_score/opportunity_score are
+  -- NULLABLE. They are populated only when the dimension GENUINELY exists. In the
+  -- Sprint 4.9 slice, Relationship Intelligence (relationship_profiles, §4.3) is
+  -- not yet built, so readiness has no inputs and is stored NULL — never a
+  -- fabricated/neutral value. Sprint 7 fills them under a newer score_version
+  -- without reinterpreting historical rows. See BLUEPRINT_AMENDMENTS.md.
+  readiness_score    smallint CHECK (readiness_score BETWEEN 0 AND 100),
+  opportunity_score  smallint CHECK (opportunity_score BETWEEN 0 AND 100),
   icp_id             uuid REFERENCES icps(id),                        -- rev 2: which ICP was matched
   icp_match_score    smallint CHECK (icp_match_score BETWEEN 0 AND 100),
   icp_match_signals  jsonb,                                            -- plain-language ICP hit/miss cards
   rubric_id          uuid NOT NULL REFERENCES scoring_rubrics(id),
   rubric_version     integer NOT NULL,
+  -- AMENDED (Amendment 011): the scoring ALGORITHM version (distinct from the
+  -- workspace rubric_version). Persisted on every score so a row stays explainable
+  -- after future algorithm revisions (D9). Sprint 4.9 = version 1.
+  score_version      integer NOT NULL DEFAULT 1,
   top_signals        jsonb NOT NULL,
   explainability     jsonb NOT NULL,
   model              text NOT NULL,
@@ -581,6 +591,8 @@ Workspace-configurable via `scoring_rubrics.definition.fit_composition`. When no
 
 **Opportunity score composition (unchanged):** default `opportunity_score = round(sqrt(fit_score * readiness_score))`.
 
+**AMENDED (Amendment 011) — composition over available dimensions only:** the engine composes each score from the dimensions that genuinely exist and records per-component availability in `explainability`. When a dimension has no inputs (e.g. readiness before Relationship Intelligence ships), that score is `NULL` — the engine never fabricates or substitutes a neutral value. `opportunity_score` therefore requires a real `readiness_score`; until readiness exists it is `NULL`, and `fit_score` is the surfaced signal. `fit_score` renormalizes its `fit_composition` weights over the components that are available (ICP match, website intelligence, enrichment), so a missing enrichment substrate biases nothing.
+
 ### 5.4 `lead_score_history` (append-only, extended)
 
 ```sql
@@ -589,12 +601,15 @@ CREATE TABLE lead_score_history (
   workspace_id       uuid NOT NULL,
   lead_id            uuid NOT NULL,
   fit_score          smallint NOT NULL,
-  readiness_score    smallint NOT NULL,
-  opportunity_score  smallint NOT NULL,
+  -- AMENDED (Amendment 011): nullable — history mirrors lead_scores, so an
+  -- honestly-absent dimension stays absent in the historical record too.
+  readiness_score    smallint,
+  opportunity_score  smallint,
   icp_id             uuid,
   icp_match_score    smallint,
   rubric_id          uuid NOT NULL,
   rubric_version     integer NOT NULL,
+  score_version      integer NOT NULL DEFAULT 1,   -- AMENDED (Amendment 011): algorithm version
   top_signals        jsonb NOT NULL,
   model              text NOT NULL,
   computed_at        timestamptz NOT NULL DEFAULT now(),

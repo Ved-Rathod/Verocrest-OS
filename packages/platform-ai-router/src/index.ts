@@ -25,6 +25,7 @@ export {
 } from './pricing';
 export { CAPABILITY_CONFIGS, getCapabilityConfig } from './capabilities';
 export { personalizationOutputSchema, type PersonalizationOutput } from './schemas/personalization';
+export { scoreLeadOutputSchema, type ScoreLeadOutput } from './schemas/scoring';
 export { BASELINE_PROMPTS, getBaselinePrompt, type PromptDefinition } from './prompts/baselines';
 export {
   clearPromptCacheForTests,

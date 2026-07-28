@@ -42,6 +42,16 @@ export type EventPayloads = {
     model: string;
     citations: Record<string, unknown>;
   };
+  // Lead Intelligence Engine (Sprint 4.9, Amendment 011). Emitted after a lead is
+  // scored (fit + optional readiness/opportunity). `opportunity_score` is null
+  // until Relationship Intelligence ships (readiness has no inputs yet).
+  'lead.scored': {
+    lead_id: string;
+    fit_score: number;
+    opportunity_score: number | null;
+    score_version: number;
+    model: string;
+  };
 };
 
 export type EventName = keyof EventPayloads;
@@ -78,6 +88,7 @@ export const EVENT_VERSIONS = {
   'website.audit.completed': 1,
   'website.audit.indexed': 1,
   'outreach.draft.generated': 1,
+  'lead.scored': 1,
 } as const satisfies Record<EventName, number>;
 
 export const EVENT_SUBJECT_TYPE = {
@@ -112,6 +123,7 @@ export const EVENT_SUBJECT_TYPE = {
   'website.audit.completed': 'audit',
   'website.audit.indexed': 'audit',
   'outreach.draft.generated': 'outreach_message',
+  'lead.scored': 'lead',
 } as const satisfies Record<EventName, string>;
 
 export const EVENT_NAMES = Object.keys(EVENT_VERSIONS) as EventName[];

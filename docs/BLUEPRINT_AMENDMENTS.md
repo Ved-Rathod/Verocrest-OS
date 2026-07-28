@@ -361,4 +361,30 @@ already-frozen `integration.google.connected`:
 
 ---
 
-*Next amendment: 011.*
+## Amendment 011 — Lead Scoring: nullable readiness/opportunity + algorithm `score_version`
+
+| | |
+|---|---|
+| **Status** | Approved |
+| **Date** | 2026-07-28 |
+| **Approved by** | Founder (Sprint 4.9, modified D4 + new D9) |
+| **Trigger** | Sprint 4.9 (AI Lead Scoring) implements a slice of the frozen Sprint 7 Lead Intelligence Engine. The frozen fit formula (`04` §5.3) composes readiness from `relationship_profiles` (§4.3), which is not yet built, and `opportunity = sqrt(fit·readiness)`. The founder directed that the engine must compute **only from signals that genuinely exist** and must **not fabricate or substitute a neutral readiness**. Frozen `lead_scores.readiness_score` / `opportunity_score` are `NOT NULL`, which forces either a fabricated value or a schema change. Work stopped per protocol; founder chose the schema change. |
+| **Documents changed** | `04` §5.3 (nullable readiness/opportunity, new `score_version`), `04` §5.4 (history mirror), `04` §5.3 composition note |
+| **Documents evaluated and NOT changed** | 01–03, 05–12; frozen fit/opportunity *formulas* are unchanged — only their nullability and a versioning column |
+
+### Decision
+1. **`readiness_score` and `opportunity_score` become NULLABLE** on `lead_scores` and `lead_score_history` (modified D4). A dimension is populated only when it genuinely exists. In Sprint 4.9 Relationship Intelligence is deferred, so readiness has no inputs and both are stored `NULL` — never fabricated, never a neutral 50. The overall score is composed only from available dimensions; `fit_score` is the surfaced signal until readiness exists.
+2. **`fit_score` renormalizes `fit_composition` weights over available components** (ICP match, website intelligence, enrichment). A missing enrichment substrate contributes no weight rather than a zero that biases the score down. Per-component availability + weights are recorded in `explainability`.
+3. **New `score_version integer NOT NULL DEFAULT 1` column** (D9) records the scoring *algorithm* version, distinct from the workspace `rubric_version`. Every persisted score carries it so historical rows remain explainable after future algorithm revisions. Sprint 4.9 = version 1.
+4. **Sprint 7 forward-compatibility:** when Relationship Intelligence lands, it computes readiness + opportunity under a **newer `score_version`** on new scores. Historical version-1 rows are **not** reinterpreted or back-filled — they remain valid as computed.
+5. **Scope (Sprint 4.9 slice, per approved D1):** deterministic fit + ICP matching + `score-lead` explainability (keyless mock), persisted to the frozen `lead_scores`/`lead_score_history` under LIE write-lock, emitting the new `lead.scored` event. Enrichment, Relationship Intelligence, the Outreach Queue, and the full auto-trigger event chain remain their frozen Sprint 7 items.
+
+### Impact
+- `lead_scores`/`lead_score_history` are additive/relaxing changes (nullability + one column); no existing column type or name changes; frozen indexes unchanged.
+- The `NOT NULL` relaxation cannot break existing rows (there are none — first migration of these tables).
+- LIE write-lock realized: members `SELECT` only; writes flow through the service-role scoring path (no INSERT/UPDATE/DELETE policy), satisfying the roadmap DoD "`app_role_features` INSERT on `lead_scores` fails at the Postgres level."
+- Event catalogue grows by one (`lead.scored`); schema version 1; no existing names change.
+
+---
+
+*Next amendment: 012.*

@@ -4,8 +4,11 @@ import { notFound } from 'next/navigation';
 import { Building2Icon, CalendarIcon, PencilIcon, TagIcon, UserIcon } from 'lucide-react';
 import { getLeadDetailPage } from '@verocrest/domain-leads/server';
 import { LEAD_PRIORITY_LABELS, LEAD_STATUS_LABELS, leadContactName } from '@verocrest/domain-leads';
+import { getLeadScore } from '@verocrest/domain-scoring/server';
+import { requireWorkspaceContext } from '@verocrest/platform-tenancy/server';
 import { Badge, Button, Card, CardBody } from '@verocrest/ui-kit';
 import { LeadActions } from '@/components/leads/lead-actions';
+import { LeadScorePanel } from '@/components/scoring/lead-score-panel';
 import { formatMoney, priorityVariant, statusVariant } from '@/components/leads/lead-format';
 
 export const metadata: Metadata = { title: 'Lead' };
@@ -18,6 +21,9 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
   // a null result means not-found in this workspace.
   const lead = await getLeadDetailPage(id);
   if (!lead) notFound();
+
+  const ctx = await requireWorkspaceContext();
+  const leadScore = await getLeadScore(ctx, id);
 
   const name = leadContactName(lead.contact);
 
@@ -103,6 +109,8 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
         {/* Relationship panels */}
         <div className="flex flex-col gap-4">
+          <LeadScorePanel leadId={lead.id} initial={leadScore} />
+
           <Card>
             <CardBody>
               <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-fg-muted">

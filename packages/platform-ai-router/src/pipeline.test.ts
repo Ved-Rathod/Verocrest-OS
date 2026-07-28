@@ -337,7 +337,7 @@ describe('capability guard', () => {
     const { deps } = makeDeps();
     const router = createRouter(deps);
     await expect(
-      router.callCapability({ ...makeCall(), capability: 'score-lead' }),
+      router.callCapability({ ...makeCall(), capability: 'classify-reply' }),
     ).rejects.toMatchObject({ code: 'AI_CAPABILITY_UNKNOWN' });
   });
 });

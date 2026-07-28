@@ -28,6 +28,31 @@ const MOCK_STRUCTURED: Record<string, unknown> = {
     cta_suggestion: 'Open to a 15-minute walkthrough next week?',
     confidence: 72,
   },
+  // Sprint 4.9 — score-lead explainability (numbers come from the deterministic
+  // engine; this is the narrative layer). Mirrors MOCK_SCORE_LEAD in the router's
+  // schemas/scoring.ts (a router test asserts schema conformance).
+  'score-lead': {
+    summary:
+      'Strong ICP alignment on industry and geography; website intelligence shows conversion gaps that this offer directly addresses.',
+    signals: [
+      {
+        label: 'ICP match',
+        detail: 'Company industry and target geography match the active ICP.',
+        direction: 'positive',
+      },
+      {
+        label: 'Website intelligence',
+        detail: 'Audit flagged a missing booking CTA — a fixable conversion gap.',
+        direction: 'positive',
+      },
+      {
+        label: 'Readiness',
+        detail: 'Relationship signals are not yet available for this lead.',
+        direction: 'neutral',
+      },
+    ],
+    confidence: 68,
+  },
 };
 
 function mockResponseFor(params: LlmCallParams): string {

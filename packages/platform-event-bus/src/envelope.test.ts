@@ -5,7 +5,7 @@ import { isUlid, ulid } from './ulid';
 
 describe('event envelope', () => {
   it('covers every catalogue name with a version and subject', () => {
-    expect(EVENT_NAMES).toHaveLength(31);
+    expect(EVENT_NAMES).toHaveLength(32);
     for (const name of EVENT_NAMES) {
       expect(EVENT_VERSIONS[name]).toBe(1);
       expect(EVENT_SUBJECT_TYPE[name]).toMatch(

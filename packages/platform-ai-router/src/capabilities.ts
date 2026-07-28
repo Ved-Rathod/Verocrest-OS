@@ -1,5 +1,6 @@
 import type { Capability, CapabilityConfig } from './types';
 import { personalizationOutputSchema } from './schemas/personalization';
+import { scoreLeadOutputSchema } from './schemas/scoring';
 
 /**
  * Capability catalogue — code baseline config (docs/09 §2.3 step 1, §11).
@@ -43,6 +44,28 @@ export const CAPABILITY_CONFIGS: Partial<Record<Capability, CapabilityConfig>> =
     timeoutMs: 30_000,
     outputSchema: personalizationOutputSchema,
     hardMaxUsd: 0.05,
+  },
+  // Lead scoring explainability (Sprint 4.9, docs/09 §4.3 + §11, Amendment 011).
+  // The deterministic engine owns the numbers (D2); this structured capability
+  // produces the plain-language summary + driving signals + confidence, grounded
+  // in the frozen scopes (contact/company/audit/icp, topK 6, min-sim 0.55).
+  // Anthropic primary; OpenAI primary deferred (RN-001). Mock returns a
+  // deterministic conformant object so it runs keyless (D2).
+  'score-lead': {
+    capability: 'score-lead',
+    module: 'scoring', // Module 2 / LIE (docs/09 §11)
+    primary: 'anthropic',
+    fallback: null,
+    models: {
+      anthropic: 'claude-sonnet-5',
+      mock: 'mock-model',
+    },
+    streamingDefault: false, // docs/09 §11: score-lead streams off
+    maxOutputTokens: 1024,
+    temperature: 0.2,
+    timeoutMs: 30_000,
+    outputSchema: scoreLeadOutputSchema,
+    hardMaxUsd: 0.02, // est. band $0.002–$0.008 (docs/09 §11) with headroom
   },
   // Embed-only capability (docs/09 §5.5): the generic memory writer. Shares the
   // Router's cost + logging + budget path minus generation. Landed Sprint 3.4.
